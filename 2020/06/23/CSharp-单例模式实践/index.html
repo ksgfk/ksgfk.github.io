@@ -91,7 +91,7 @@
 <li>最简单的单例类例子：</li>
 </ul>
 <figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Singleton</span><br>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Singleton Instance &#123; <span class="hljs-keyword">get</span>; &#125; = <span class="hljs-keyword">new</span> Singleton();<br><br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">Singleton</span>(<span class="hljs-params"></span>)</span> &#123; &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>俗称懒汉式单例，由CLR保证在类初始化时就构造完毕，没有线程安全问题。但是有没有办法让它在我们第一次使用时才加载呢。</p>
+<p>俗称饿汉式单例，由CLR保证在类初始化时就构造完毕，没有线程安全问题。但是有没有办法让它在我们第一次使用时才加载呢。</p>
 <ul>
 <li>最简单的懒惰单例</li>
 </ul>
