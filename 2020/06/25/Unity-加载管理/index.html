@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    name="viewport"
+  />
+  <meta name="description" content="Store some articles." />
+  <meta
+    name="keywords"
+    content="ksgfk&#39;s blog|Store some articles."
+  />
+  <link rel="shortcut icon" href="/img/logo.png" />
+  <title>ksgfk&#39;s blog</title>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="header-content">
+    <div class="header-title">
+      <a href="/" class="header-title-logo"
+        >ksgfk&#39;s blog</a
+      >
+    </div>
+    <nav class="header-navbar">
+      <ul class="header-menu">
+        
+        <li class="header-menu-item">
+          <a href="/"
+            >首页</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/archives"
+            >归档</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/categories"
+            >分类</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/tags"
+            >标签</a
+          >
+        </li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+      <main class="main">
+        <article class="post-info">
+  <h1 class="post-info-title">[Unity]加载管理</h1>
+  <div class="post-meta">
+  <span class="post-time">2020-06-25</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/Unity/">Unity</a>
+    
+  </span>
+  
+</div>
+
+  <div class="post-info-content">
+    <ul>
+<li>为什么会要写加载管理（LoadManager）
+<ul>
+<li>使用Unity提供的Addressable包来管理资产时时，发现所有加载操作都是异步方法，而实际操作中为了等待资源加载完毕还要编写额外代码，很不舒服。</li>
+<li>异步加载的完成时间不确定，且某些资源和资源间存在依赖关系，会导致无法引用目标资源，抛出异常。</li>
+</ul>
+</li>
+<li>加载管理者需要提供的功能：加载请求，分批加载资源，单个资源完成时的回调，同一批次资源完成时的回调。</li>
+<li>我们选择内置一个状态机来描述LoadManager的当前状态。</li>
+</ul>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> LoadState<br>&#123;<br>    Sleep,<br>    Ready,<br>    Working,<br>    Finish<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>将单个资源的加载请求封装，提出接口</li>
+</ul>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IAsyncHandleWrapper</span><br>&#123;<br>    <span class="hljs-keyword">bool</span> IsDone &#123; <span class="hljs-keyword">get</span>; &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">OnComplete</span>(<span class="hljs-params"></span>)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>使用队列来储存同一批次的请求</li>
+</ul>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">LoadManager</span> : <span class="hljs-title">MonoBehaviour</span><br>&#123;<br>    [<span class="hljs-meta">SerializeField</span>] <span class="hljs-keyword">private</span> LoadState nowState;<span class="hljs-comment">//描述当前状态</span><br>    <span class="hljs-keyword">private</span> Queue&lt;IAsyncHandleWrapper&gt; _requestQueue;<br><br>    <span class="hljs-keyword">public</span> LoadState NowState =&gt; nowState;<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>在开始添加加载请求前，需要显式调用Ready方法，因为需要确定当前状态是否可以进行下一批次的加载</li>
+</ul>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Ready</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-keyword">if</span> (nowState != LoadState.Sleep) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">"休眠状态才能准备加载"</span>);<br>    _requestQueue = <span class="hljs-keyword">new</span> Queue&lt;IAsyncHandleWrapper&gt;();<br>    nowState = LoadState.Ready;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>每批次加载完后，会释放掉队列的实例，所以调用Ready时才会又实例化一个，大概能省点内存？</p>
+<ul>
+<li>编写最基本的请求方法</li>
+</ul>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Request</span>(<span class="hljs-params">IAsyncHandleWrapper wrapper</span>)</span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-keyword">if</span> (nowState != LoadState.Ready) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">"准备状态才能添加请求"</span>);<br>    _requestQueue.Enqueue(wrapper);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其实就是将请求插入队列中</p>
+<ul>
+<li>在发布所有请求后，便可以开始工作了。先来编写工作时的方法。每帧检查一下队列头部的请求是否完成。个人不喜欢写Update，因为LoadManager并不是整个游戏过程中都需要Update，所以这里用协程代替。顺便发布一个当前批次完成后的事件。</li>
+</ul>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">private</span> Coroutine _workingCoroutine;<br><span class="hljs-keyword">private</span> Action _completeCallback;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">event</span> Action Complete<br>&#123;<br>    <span class="hljs-keyword">add</span><br>    &#123;<br>        <span class="hljs-keyword">if</span> (nowState != LoadState.Ready) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">"准备状态才能添加回调"</span>);<br>        _completeCallback += <span class="hljs-keyword">value</span>;<br>    &#125;<br>    <span class="hljs-keyword">remove</span><br>    &#123;<br>        <span class="hljs-keyword">if</span> (nowState != LoadState.Ready) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">"准备状态才能删除回调"</span>);<br>        _completeCallback = (Action) Delegate.Remove(_completeCallback, <span class="hljs-keyword">value</span>);<br>    &#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> IEnumerator <span class="hljs-title">QueueAsyncOpHandles</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-keyword">while</span> (_requestQueue.Count &gt; <span class="hljs-number">0</span>)<br>    &#123;<br>        <span class="hljs-keyword">var</span> head = _requestQueue.Peek();<br>        <span class="hljs-keyword">if</span> (head.IsDone)<br>        &#123;<br>            head.OnComplete();<br>            _requestQueue.Dequeue();<br>        &#125;<br><br>        <span class="hljs-keyword">yield</span> <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>    &#125;<br><br>    nowState = LoadState.Finish;<br>    _completeCallback?.Invoke();<br>    _completeCallback = <span class="hljs-literal">null</span>;<br>    _workingCoroutine = <span class="hljs-literal">null</span>;<br>    _requestQueue = <span class="hljs-literal">null</span>;<br>    nowState = LoadState.Sleep;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>编写开始工作方法</p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Work</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-keyword">if</span> (nowState != LoadState.Ready) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">"准备状态才能开始工作"</span>);<br>    nowState = LoadState.Working;<br>    _workingCoroutine = StartCoroutine(QueueAsyncOpHandles());<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>现在，我们的LoadManager已经可以工作了。来试试请求Addressable的资源。</li>
+</ul>
+<figure class="highlight cs"><figcaption><span>包装Addressable的异步请求</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">AddrAsyncWrapper</span> : <span class="hljs-title">IAsyncHandleWrapper</span><br>&#123;<br>    <span class="hljs-keyword">public</span> AsyncOperationHandle Handle &#123; <span class="hljs-keyword">get</span>; &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">bool</span> IsDone =&gt; Handle.IsDone;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">AddrAsyncWrapper</span>(<span class="hljs-params">AsyncOperationHandle handle</span>)</span> &#123; Handle = handle; &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">OnComplete</span>(<span class="hljs-params"></span>)</span> &#123; &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight cs"><figcaption><span>使用扩展方法为LoadManager添加方法</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> Request&lt;T&gt;(<span class="hljs-keyword">this</span> LoadManager load, <span class="hljs-keyword">string</span> addr, Action&lt;T&gt; callback) <span class="hljs-keyword">where</span> T : UnityEngine.Object<br>&#123;<br>    <span class="hljs-keyword">var</span> handle = Addressables.LoadAssetAsync&lt;T&gt;(addr);<br>    handle.Completed += handleCallback =&gt; &#123; callback?.Invoke(handleCallback.Result); &#125;;<br>    load.Request(<span class="hljs-keyword">new</span> AddrAsyncWrapper(handle));<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight cs"><figcaption><span>例子</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cs"><span class="hljs-keyword">private</span> List&lt;GameObject&gt; _skins;<br><span class="hljs-keyword">private</span> LoadManager _load;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Awake</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function"></span>&#123;<br>    _load = <span class="hljs-keyword">new</span> LoadManager();<br>    _skins = <span class="hljs-keyword">new</span> List&lt;GameObject&gt;();<br>    _load.Ready();<br>    _load.Complete += () =&gt; _load.ForEach(skin =&gt; UnityEngine.Object.Instantiate(skin));<br>    _load.Request&lt;GameObject&gt;(<span class="hljs-string">"steve"</span>, steve =&gt; _skins.Add(steve));<br>    _load.Request&lt;GameObject&gt;(<span class="hljs-string">"alex"</span>, alex =&gt; _skins.Add(alex));<br>    _load.Work();<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>简单，粗暴，有效（真的有效）</li>
+</ul>
+
+  </div>
+</article>
+
+      </main>
+      <footer class="footer">
+  <div class="footer-content">
+    <!-- <div class="copyright">
+      ©2020 - 2020 By ksgfk
+    </div> -->
+    <div>
+      <a rel="license noopener" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><img alt="知识共享许可协议" style="border-width:0"
+          src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />采用<a rel="license"
+        href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+    <div class="framework-info">
+      <span>驱动 - </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span
+        class="footer-separator">&nbsp;|&nbsp;</span><span>主题 - </span><a
+        href="https://github.com/onfuns/hexo-theme-pureness"><span>pureness</span></a>
+    </div>
+    
+  </div>
+</footer>
+    </div>
+    
+<!---------------google------------------->
+
+
+  </body>
+</html>
