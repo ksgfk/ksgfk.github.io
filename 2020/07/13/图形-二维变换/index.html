@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    name="viewport"
+  />
+  <meta name="description" content="Store some articles." />
+  <meta
+    name="keywords"
+    content="ksgfk&#39;s blog|Store some articles."
+  />
+  <link rel="shortcut icon" href="/img/logo.png" />
+  <title>ksgfk&#39;s blog</title>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="header-content">
+    <div class="header-title">
+      <a href="/" class="header-title-logo"
+        >ksgfk&#39;s blog</a
+      >
+    </div>
+    <nav class="header-navbar">
+      <ul class="header-menu">
+        
+        <li class="header-menu-item">
+          <a href="/"
+            >首页</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/archives"
+            >归档</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/categories"
+            >分类</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/tags"
+            >标签</a
+          >
+        </li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+      <main class="main">
+        <article class="post-info">
+  <h1 class="post-info-title">[图形]2D Transform 二维变换</h1>
+  <div class="post-meta">
+  <span class="post-time">2020-07-13</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+    
+  </span>
+  
+</div>
+
+  <div class="post-info-content">
+    <blockquote>
+<ul>
+<li>写出一个变换，只需要找到变换前和变换后的对应关系</li>
+<li>变换的顺序会影响结果。因为矩阵乘法不满足交换率</li>
+<li>变换操作的矩阵乘法顺序是从右到左乘</li>
+<li>可以先把变换矩阵全部乘起来，再和要变换的点乘（终极压缩）</li>
+<li><img src="%E5%8E%9F%E5%9C%B0%E6%97%8B%E8%BD%AC.png" alt="">绕任意点旋转，把点平移到原点，旋转，再移回去<br>
+——GAMES101</li>
+</ul>
+</blockquote>
+<h1>Linear Transforms 线性变换</h1>
+<p><img src="%E7%BA%BF%E6%80%A7%E5%8F%98%E6%8D%A2.png" alt=""><br>
+满足以上矩阵形式的变换都是线性变换</p>
+<h2 id="Scale-缩放">Scale 缩放</h2>
+<p>缩放矩阵<br>
+<img src="%E7%BC%A9%E6%94%BE%E7%9F%A9%E9%98%B5.png" alt=""><br>
+<img src="%E7%BC%A9%E6%94%BE%E6%95%88%E6%9E%9C.png" alt=""></p>
+<h2 id="Shear-切变">Shear 切变</h2>
+<p><img src="%E5%88%87%E5%8F%98%E6%95%88%E6%9E%9C.png" alt=""><br>
+例子中，矩形左上角顶点，经过变换后它的纵坐标不变，横坐标变为a，即(a,1)。又例如矩形左侧边的中点，在变换中向右移动了a/2，现在我们可以得出，矩形水平方向切变后，任意一个点会移动a*y距离。因此，完整坐标移动可表示为(x+a*y,y)。那么，任意水平方向上的切边，写成矩阵形式就是<br>
+<img src="%E6%B0%B4%E5%B9%B3%E5%88%87%E5%8F%98%E7%9F%A9%E9%98%B5.png" alt=""><br>
+用代码表达<code>mul(float2x2(1, a, 0, 1), raw);</code></p>
+<p>很明显，垂直切变的矩阵就是<code>mul(float2x2(1, 0, a, 1), raw);</code></p>
+<h2 id="Rotate-旋转">Rotate 旋转</h2>
+<blockquote>
+<p>tips:一般来说，没有其他信息情况下，说旋转都是<strong>绕原点，逆时针</strong>旋转</p>
+</blockquote>
+<p><img src="%E6%97%8B%E8%BD%AC%E7%BB%93%E6%9E%9C.png" alt=""><br>
+<img src="%E6%97%8B%E8%BD%AC%E7%9F%A9%E9%98%B5%E6%8E%A8%E5%AF%BCx%E5%9D%90%E6%A0%87.png" alt=""><br>
+例子中将一个边长为1的正方形旋转θ°，先看比较特殊的点(1,0)。旋转后，坐标为(x’,y’)，可以看成和原点一起围成的直角三角形，知道三角形长边，知道一个角很容易算出该点坐标是(cosθ,sinθ)</p>
+<p>我们要求的旋转矩阵可以列出等式<br>
+<img src="%E4%B8%80%E8%88%AC%E5%8F%98%E6%8D%A2%E7%9F%A9%E9%98%B5.png" alt=""><br>
+只要求出A,B,C,D四个数就完成矩阵了。现在我们已经知道一组数据(1,0)变后坐标是(cosθ,sinθ)，填入等式中<br>
+<img src="%E6%97%8B%E8%BD%AC%E7%9F%A9%E9%98%B5x%E5%9D%90%E6%A0%87%E5%85%B3%E7%B3%BB.png" alt=""><br>
+很容易得知，A*1+B*0=cosθ，C*1+D*0=sinθ，推出A=cosθ，C=sinθ</p>
+<p>同理可得，B=-sinθ，D=cosθ，需要注意的是B有负号</p>
+<h1>Affine Transformations 仿射变换</h1>
+<p><img src="%E4%BB%BF%E5%B0%84%E5%8F%98%E6%8D%A2%E5%9F%BA%E6%9C%AC%E5%BD%A2%E5%BC%8F.png" alt=""><br>
+反射变换的矩阵最下面一行一定是(0,0,1)（不是任何时候都是001哦），最右一列表示平移，一定是(tx,ty,1)，中间的A,B,C,D就是是之前线性变换的</p>
+<h2 id="Translate-平移">Translate 平移</h2>
+<p><img src="%E5%B9%B3%E7%A7%BB.png" alt=""><br>
+平移的对应关系非常简单，但是如果要把这个关系写成矩阵形式呢？<br>
+<img src="%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%871.png" alt=""><br>
+我们最多把它写成这种形式。</p>
+<p>为了用矩阵描述平移变换，引入齐次坐标（那么古尔丹，代价是什么）</p>
+<h3 id="Homogeneous-coordinates-齐次坐标">Homogeneous coordinates 齐次坐标</h3>
+<p><img src="%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%87%E5%AF%B9%E5%90%91%E9%87%8F%E5%92%8C%E7%82%B9%E7%9A%84%E5%AE%9A%E4%B9%89.png" alt=""><br>
+齐次坐标规定，对二维的向量和点，都新增一个维度。点的新维度的值一定是1，向量的新维度的值一定是0。</p>
+<p>为什么要对点和向量区别对待？</p>
+<blockquote>
+<ul>
+<li>向量具有平移不变性，无论对其做任何操作，都希望它的结果不会改变</li>
+<li><img src="%E5%90%91%E9%87%8F%E5%92%8C%E7%82%B9%E5%9C%A8%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%87%E7%9A%84%E5%8C%BA%E5%88%AB.png" alt=""><br>
+我们希望向量+向量还是向量，点-点是向量点+向量还是点。例如，点减点，点的第三个值是1，1-1正好是向量的0</li>
+</ul>
+</blockquote>
+<p>扩充定义：</p>
+<blockquote>
+<ul>
+<li>一个二维的点实际上的表示方法是<img src="%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%87%E4%B8%AD%E7%9A%84%E7%82%B9%E5%AE%9E%E9%99%85%E8%A1%A8%E7%A4%BA%E6%96%B9%E5%BC%8F.png" alt=""></li>
+<li>点+点表示这两个点的中点</li>
+</ul>
+</blockquote>
+<p><img src="%E5%B9%B3%E7%A7%BB%E7%9F%A9%E9%98%B5.png" alt=""><br>
+回到平移，我们就可以将写出3x3的矩阵</p>
+<h1>Inverse Transform 逆变换</h1>
+<p>就是说把变换后的变回去。数学上其实就是乘变换矩阵的逆矩阵</p>
+
+  </div>
+</article>
+
+      </main>
+      <footer class="footer">
+  <div class="footer-content">
+    <!-- <div class="copyright">
+      ©2020 - 2020 By ksgfk
+    </div> -->
+    <div>
+      <a rel="license noopener" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><img alt="知识共享许可协议" style="border-width:0"
+          src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />采用<a rel="license"
+        href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+    <div class="framework-info">
+      <span>驱动 - </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span
+        class="footer-separator">&nbsp;|&nbsp;</span><span>主题 - </span><a
+        href="https://github.com/onfuns/hexo-theme-pureness"><span>pureness</span></a>
+    </div>
+    
+  </div>
+</footer>
+    </div>
+    
+<!---------------google------------------->
+
+
+  </body>
+</html>
