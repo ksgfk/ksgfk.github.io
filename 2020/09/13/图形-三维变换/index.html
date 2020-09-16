@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    name="viewport"
+  />
+  <meta name="description" content="Store some articles." />
+  <meta
+    name="keywords"
+    content="ksgfk&#39;s blog|Store some articles."
+  />
+  <link rel="shortcut icon" href="/img/logo.png" />
+  <title>ksgfk&#39;s blog</title>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="header-content">
+    <div class="header-title">
+      <a href="/" class="header-title-logo"
+        >ksgfk&#39;s blog</a
+      >
+    </div>
+    <nav class="header-navbar">
+      <ul class="header-menu">
+        
+        <li class="header-menu-item">
+          <a href="/"
+            >首页</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/archives"
+            >归档</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/categories"
+            >分类</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/tags"
+            >标签</a
+          >
+        </li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+      <main class="main">
+        <article class="post-info">
+  <h1 class="post-info-title">图形-三维变换</h1>
+  <div class="post-meta">
+  <span class="post-time">2020-09-13</span>
+   
+</div>
+
+  <div class="post-info-content">
+    <h1>3D Transform 三维变换</h1>
+<p>基本原理和二维变换一致</p>
+<h2 id="齐次坐标下的点和向量定义">齐次坐标下的点和向量定义</h2>
+<p><img src="%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%87%E4%B8%8B%E7%9A%84%E7%82%B9%E5%92%8C%E5%90%91%E9%87%8F.png" alt=""></p>
+<h2 id="仿射变换一般形式">仿射变换一般形式</h2>
+<p><img src="%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F.png" alt=""></p>
+<h2 id="缩放和平移矩阵">缩放和平移矩阵</h2>
+<p><img src="%E7%BC%A9%E6%94%BE%E5%92%8C%E5%B9%B3%E7%A7%BB.png" alt=""></p>
+<h2 id="一般旋转矩阵">一般旋转矩阵</h2>
+<p><img src="%E6%97%8B%E8%BD%AC.png" alt=""><br>
+绕y轴旋转，右上的sin是正号，因为z叉乘x才是正的y</p>
+<h2 id="罗德里格斯旋转公式">罗德里格斯旋转公式</h2>
+<p><img src="%E7%BD%97%E5%BE%B7%E9%87%8C%E6%A0%BC%E6%96%AF%E5%85%AC%E5%BC%8F.png" alt=""><br>
+n表示旋转轴（默认旋转轴过原点，n是方向），α表示旋转角</p>
+<blockquote>
+<p>四元数一般用于旋转插值</p>
+</blockquote>
+<hr>
+<h1>Viewing transformation 观测变换</h1>
+<p>为了将三维空间中的物体像照相一样变换到二维，我们需要进行观测变换。观测变换包括模型（Model），视图（View），投影（Projection）变换。这一系列变换的矩阵就是MVP矩阵。</p>
+<h2 id="View-Camera-Transformation-视图变换">View/Camera Transformation 视图变换</h2>
+<h3 id="什么是视图变换">什么是视图变换</h3>
+<p>找个好角度放摄像机（确定摄像机位置方向）</p>
+<h3 id="定义摄像机">定义摄像机</h3>
+<ul>
+<li>位置(Position)</li>
+<li>相机往哪看(LookAt/Gaze Direction)</li>
+<li>向上的方向(Up Direction)</li>
+</ul>
+<blockquote>
+<p>一般的，相机的位置是原点，看向-Z轴，向上的方向是Y</p>
+</blockquote>
+<h3 id="建立视图变换矩阵">建立视图变换矩阵</h3>
+<ul>
+<li>假设摄像机目前位置在向量e，看向向量g，向上的方向是向量t</li>
+<li>将摄像机位置平移到原点，可以写出平移矩阵T<br>
+<img src="%E5%B9%B3%E7%A7%BB%E6%91%84%E5%83%8F%E6%9C%BA.png" alt=""></li>
+<li>接着将g旋转到-Z轴方向，将t旋转到Y轴方向，将 g叉乘t 旋转到X轴方向。但这样不是很好写，实际上我们可以先求逆矩阵（因为旋转矩阵是正交矩阵，所以旋转矩阵的逆就是它的转置）因此我们先求 X轴旋转到 g叉乘t ，Y轴旋转到t，Z轴旋转到-g<br>
+<img src="%E6%97%8B%E8%BD%AC%E6%91%84%E5%83%8F%E6%9C%BA%E7%9A%84%E9%80%86%E7%9F%A9%E9%98%B5.png" alt=""><br>
+接着得出它的转置，就是旋转矩阵R<br>
+<img src="%E6%91%84%E5%83%8F%E6%9C%BA%E6%97%8B%E8%BD%AC%E7%9F%A9%E9%98%B5%E7%9A%84%E9%80%86%E7%9A%84%E8%BD%AC%E7%BD%AE.png" alt=""></li>
+<li>最后视图变换矩阵M就是R乘T<br>
+<img src="%E8%A7%86%E5%9B%BE%E7%9F%A9%E9%98%B5.png" alt=""></li>
+<li>其他物体都要和摄像机一起做这个变换 哦（所以一般模型变换和视图变换一起出现）</li>
+</ul>
+<h2 id="Projection-Transformation-投影变换">Projection Transformation 投影变换</h2>
+<p>投影变换分为正交投影（Orthographic）和透视投影（Perspective）。正交投影中，互相平行的线，投影完后它们还是平行的，而透视投影会逐渐靠近交汇到一起。再简单来说，透视投影近大远小，正交投影是多大就是多大，不会因为摄像机的距离改变。（但是鸽子到底为什么这么大呢.jpg）<br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%92%8C%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1.png" alt=""></p>
+<h3 id="Orthographic-Projection-正交投影">Orthographic Projection 正交投影</h3>
+<h4 id="简单理解正交投影干了啥">简单理解正交投影干了啥</h4>
+<ol>
+<li>把摄像机摆好（原点，看向-Z，向上是Y）</li>
+<li>扔掉Z坐标（那怎么判断谁在前谁在后呢）</li>
+<li>现在坐标只剩x和y，把坐标按比例缩小到[-1,1]²的矩形内（方便之后的计算）</li>
+</ol>
+<h4 id="一般做法">一般做法</h4>
+<p>在空间中划出一块长方体区域，将它映射到一个标准立方体（canonical cube）中<br>
+<img src="%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1%E7%9A%84%E5%B8%B8%E8%A7%84%E5%81%9A%E6%B3%95.png" alt=""><br>
+将原长方体移动到原点，再把三条轴分别拉出-1到1的范围（通过缩放）<br>
+<img src="%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5.png" alt=""></p>
+<blockquote>
+<p>需要注意的是，右手坐标系中，划分的长方体区域其实是近大于远（n&gt;f），在左手坐标系中才是远大于近（比如OpenGL）</p>
+</blockquote>
+<h3 id="Perspective-Projection-透视投影">Perspective Projection 透视投影</h3>
+<p>欧几里得规定，两条永不相交的线是平行线，但是现实的照片中，两条平行线会相交于一个点。在一个平面中（比如同时垂直于两条线的平面），平行线当然是平行的，但它们被投影到另一个平面中时，就不一定了</p>
+<blockquote>
+<p>补充知识：在齐次坐标中，一个点(x,y,z,1)乘以k（k不等于0），那么它还是原来的点，所以对一个点乘以它自己的z，还是原来的点。</p>
+</blockquote>
+<blockquote>
+<p>所以(1,0,0,1)和(2,0,0,2)是同一个点(1,0,0)</p>
+</blockquote>
+<h4 id="如何建立透视投影">如何建立透视投影</h4>
+<ul>
+<li>类比正交投影，也要划分一个范围。从一个点延伸出一个四棱锥，定义近的面（n）和远的面（f），n面比f面小<br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9A%84%E8%8C%83%E5%9B%B4.png" alt=""></li>
+<li>然后把f面挤成和n面一样大（就是把四棱锥挤成长方体），再做一次正交投影</li>
+</ul>
+<blockquote>
+<p>规定：</p>
+<ul>
+<li>近平面（n）上任何一个点永远不变</li>
+<li>除近平面的面，其他任何点在挤压过程中z轴坐标不变</li>
+<li>远平面的中心点坐标不变</li>
+</ul>
+</blockquote>
+<p>为了挤压四棱锥，我们从四棱锥侧面看它<br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%9B%9B%E6%A3%B1%E9%94%A5%E4%BE%A7%E9%9D%A2.png" alt=""><br>
+(x’,y’,z’)和(x,y,z)构成了相似三角形，而近平面与原点的距离（n）和远平面与原点的距离（z）我们都知道，就可以得出结论 y’和y的比值 等于 n和z的比值。进一步，任意一个平面（在近远平面内且平行于两平面的面）中的点的y&quot;和y’的比值，都等于n和z&quot;（该平面的z）的比值。所以可以写出点的齐次坐标变化<br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B51.png" alt=""><br>
+现在我们还不知道z如何变化，但是已知原来的点的齐次坐标，已知现在的点的部分信息，可以将部分数据填入矩阵了<br>
+<img src="%E5%86%99%E5%87%BA%E9%83%A8%E5%88%86%E7%9F%A9%E9%98%B5%E6%95%B0%E6%8D%AE.png" alt=""><br>
+观察近平面的任意点z’，因为规定的存在，所以z’不会变。而远平面的z，其实也不会有任何改变。可以写出近平面的点的变换<br>
+<img src="%E8%BF%91%E5%B9%B3%E9%9D%A2%E7%9A%84z%E7%82%B9.png" alt=""><br>
+所以对于给定的深度n，可以知道第三个数是n²。<br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E7%AC%AC%E4%B8%89%E8%A1%8C.png" alt=""><br>
+所以透视矩阵投影第三行前两个数就是(0,0,A,B)，但后两个数不能确定（因为只根据近平面的性质还不能推出来，比如A等于0，B等于n²，结果是n²，但是A等于n，B等于0，结果还是n²）。<br>
+<img src="%E8%BF%91%E8%BF%9C%E5%B9%B3%E9%9D%A2%E5%88%97%E5%87%BA%E5%85%B3%E7%B3%BB.png" alt=""><br>
+再看远平面，远平面的特殊点f（就是最中间的点，任何一个轴都不会变）,将(0,0,A,B)乘以这个点的齐次坐标可以得到一个方程，将(0,0,A,B)乘以近平面的点也可以得到一个方程。两方程联立就可以得出A和B的关系<br>
+<img src="A%E5%92%8CB%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt=""><br>
+最终我们就可以写出透视投影矩阵。n是近平面的z点，f是远平面的z点</p>
+
+  </div>
+</article>
+
+      </main>
+      <footer class="footer">
+  <div class="footer-content">
+    <!-- <div class="copyright">
+      ©2020 - 2020 By ksgfk
+    </div> -->
+    <div>
+      <a rel="license noopener" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><img alt="知识共享许可协议" style="border-width:0"
+          src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />采用<a rel="license"
+        href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+    <div class="framework-info">
+      <span>驱动 - </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span
+        class="footer-separator">&nbsp;|&nbsp;</span><span>主题 - </span><a
+        href="https://github.com/onfuns/hexo-theme-pureness"><span>pureness</span></a>
+    </div>
+    
+  </div>
+</footer>
+    </div>
+    
+<!---------------google------------------->
+
+
+  </body>
+</html>
