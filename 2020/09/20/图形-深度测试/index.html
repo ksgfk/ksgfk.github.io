@@ -60,11 +60,50 @@
 </header>
 
       <main class="main">
-        
-<div class="category-all">
-  <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a><span class="category-list-count">10</span></li></ul>
+        <article class="post-info">
+  <h1 class="post-info-title">[图形]深度测试</h1>
+  <div class="post-meta">
+  <span class="post-time">2020-09-20</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+    
+  </span>
+  
 </div>
 
+  <div class="post-info-content">
+    <blockquote>
+<p>如何解决空间中三角形互相遮挡的问题</p>
+</blockquote>
+<p>最古老的解决这个问题的算法是画家算法（Painter Algorithm），先画远处的物体再画近处的，重叠部分直接覆盖，基本可以保证遮挡顺序是对的。但是在某些特殊情况下<br>
+<img src="%E7%94%BB%E5%AE%B6%E7%AE%97%E6%B3%95%E7%9A%84%E5%B1%80%E9%99%90.png" alt=""><br>
+不管哪个三角形先画都有问题</p>
+<h2 id="Z-Buffer-深度缓冲">Z-Buffer 深度缓冲</h2>
+<p>因为空间中的三角形不好排先后顺序，所以深度缓冲记录的是，每个像素所在的几何图形最浅的深度（？）</p>
+<p>最终生成的有两张图像，一个是最终结果（frame buffer）,另一个是任何一个像素对应的深度（depth buffer）</p>
+<blockquote>
+<p>为了简化计算，我们认为相机到顶点的距离就是深度，距离永远是正数，而且越小表示离相机越近，否则越远</p>
+</blockquote>
+<p>算法大致过程：</p>
+<ul>
+<li>将深度缓冲初始值设为无限大</li>
+<li>遍历所有三角形，进行光栅化，遍历所有像素</li>
+<li>如果像素的深度小于buffer中对应位置像素的深度，就替换掉</li>
+</ul>
+<p>算法复杂度：O(n)，n是三角形数量（只针对深度缓冲算法，不考虑光栅化）。能做到线性时间复杂度是因为实际上并没有对三角形进行排序，它和三角形在空间中的顺序（从摄像机到三角形）没有关系。<em>两个三角形的某些像素深度相同的情况另说</em></p>
+
+  </div>
+</article>
 
       </main>
       <footer class="footer">

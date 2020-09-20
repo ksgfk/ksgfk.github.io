@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    name="viewport"
+  />
+  <meta name="description" content="Store some articles." />
+  <meta
+    name="keywords"
+    content="ksgfk&#39;s blog|Store some articles."
+  />
+  <link rel="shortcut icon" href="/img/logo.png" />
+  <title>ksgfk&#39;s blog</title>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="header-content">
+    <div class="header-title">
+      <a href="/" class="header-title-logo"
+        >ksgfk&#39;s blog</a
+      >
+    </div>
+    <nav class="header-navbar">
+      <ul class="header-menu">
+        
+        <li class="header-menu-item">
+          <a href="/"
+            >首页</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/archives"
+            >归档</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/categories"
+            >分类</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/tags"
+            >标签</a
+          >
+        </li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+      <main class="main">
+        <article class="post-info">
+  <h1 class="post-info-title">[数学]简单线性代数</h1>
+  <div class="post-meta">
+  <span class="post-time">2020-05-19</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/%E6%95%B0%E5%AD%A6/">数学</a>
+    
+  </span>
+  
+</div>
+
+  <div class="post-info-content">
+    <h1>向量 Vector</h1>
+<h2 id="点乘-Dot">点乘 Dot</h2>
+<ul>
+<li><img src="vec_dot_formula.png" alt=""></li>
+<li><img src="vec_dot_unit.png" alt=""></li>
+<li>可以用来求两向量夹角的余弦，向量点乘除以向量长度的积</li>
+<li><img src="vec_dot_cal_projection.png" alt="">可以用来求投影，b在a上投影长度就是b长度乘夹角的余弦</li>
+<li><img src="vec_dot_cal_proj_sub.png" alt="">算出投影后，原向量再减去投影向量，就算出原向量分解后的两个向量</li>
+<li><img src="vec_dot_res.png" alt="">点乘结果大于零，则两向量都指向前方，小于零则都指向后方。两向量越接近，点乘结果越接近1或-1</li>
+</ul>
+<h2 id="叉乘-Cross">叉乘 Cross</h2>
+<ul>
+<li>以下都是右手坐标系</li>
+<li><img src="cross.png" alt="">叉乘结果是：与两向量都垂直的向量，且与两向量所在平面垂直</li>
+<li>不满足交换律</li>
+<li>自己叉乘自己结果是0向量</li>
+<li>判定左右。叉乘结果是正，在左侧；结果是负，在右侧</li>
+<li><img src="cross_io.png" alt="">判断内外。AB与AP叉乘，BC与BP叉乘，CA与CP叉乘，若结果的长度<strong>都是正的或者负的</strong>，说明P在ABC围成图形的内部，否则<strong>只要有一个结果的长度与其他两个不一样</strong>，则P在ABC外部。</li>
+</ul>
+<h2 id="其他的">其他的</h2>
+<ul>
+<li><img src="%E5%8D%95%E4%BD%8D%E5%90%91%E9%87%8F%E5%AE%9A%E4%B9%89.png" alt=""><img src="%E5%90%91%E9%87%8F%E5%88%86%E8%A7%A3.png" alt="">p向量分解，u、v、w都是单位向量</li>
+</ul>
+<h1>矩阵 Matrix</h1>
+<h2 id="乘法">乘法</h2>
+<ul>
+<li>(M<em>N)(N</em>P)=(M*P)，M、N、P都是矩阵的行和列</li>
+<li>M行N列的结果，是第一个矩阵第M行，第二个矩阵N列，结果分别相乘加起来</li>
+<li><strong>没有交换律</strong></li>
+</ul>
+<h2 id="转置">转置</h2>
+<ul>
+<li>其实就是把原向量的行和列互换</li>
+<li><img src="%E7%9F%A9%E9%98%B5%E8%BD%AC%E7%BD%AE%E7%9A%84%E5%B1%9E%E6%80%A7.png" alt=""></li>
+</ul>
+<h2 id="单位矩阵与矩阵的逆">单位矩阵与矩阵的逆</h2>
+<ul>
+<li><img src="%E7%9F%A9%E9%98%B5%E7%9A%84%E9%80%86%E5%92%8C%E5%8D%95%E4%BD%8D%E7%9F%A9%E9%98%B5%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt=""></li>
+</ul>
+<h2 id="和向量联动">和向量联动</h2>
+<ul>
+<li><img src="%E7%82%B9%E4%B9%98%E5%86%99%E6%88%90%E7%9F%A9%E9%98%B5.png" alt="">点乘写成矩阵</li>
+<li><img src="%E5%8F%89%E4%B9%98%E5%86%99%E6%88%90%E7%9F%A9%E9%98%B5.png" alt="">叉乘写成矩阵。A星号不是A乘b，A星号是dual matrix</li>
+</ul>
+
+  </div>
+</article>
+
+      </main>
+      <footer class="footer">
+  <div class="footer-content">
+    <!-- <div class="copyright">
+      ©2020 - 2020 By ksgfk
+    </div> -->
+    <div>
+      <a rel="license noopener" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><img alt="知识共享许可协议" style="border-width:0"
+          src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />采用<a rel="license"
+        href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+    <div class="framework-info">
+      <span>驱动 - </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span
+        class="footer-separator">&nbsp;|&nbsp;</span><span>主题 - </span><a
+        href="https://github.com/onfuns/hexo-theme-pureness"><span>pureness</span></a>
+    </div>
+    
+  </div>
+</footer>
+    </div>
+    
+<!---------------google------------------->
+
+
+  </body>
+</html>

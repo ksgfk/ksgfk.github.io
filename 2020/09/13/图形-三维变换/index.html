@@ -61,10 +61,24 @@
 
       <main class="main">
         <article class="post-info">
-  <h1 class="post-info-title">图形-三维变换</h1>
+  <h1 class="post-info-title">[图形]三维变换</h1>
   <div class="post-meta">
   <span class="post-time">2020-09-13</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
    
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+    
+  </span>
+  
 </div>
 
   <div class="post-info-content">
@@ -168,6 +182,12 @@ n表示旋转轴（默认旋转轴过原点，n是方向），α表示旋转角<
 再看远平面，远平面的特殊点f（就是最中间的点，任何一个轴都不会变）,将(0,0,A,B)乘以这个点的齐次坐标可以得到一个方程，将(0,0,A,B)乘以近平面的点也可以得到一个方程。两方程联立就可以得出A和B的关系<br>
 <img src="A%E5%92%8CB%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt=""><br>
 最终我们就可以写出透视投影矩阵。n是近平面的z点，f是远平面的z点</p>
+<p><em>2020/9/20更新</em></p>
+<h3 id="总结一下">总结一下</h3>
+<p><img src="%E5%AE%9A%E4%B9%89%E8%A7%86%E9%94%A5%E4%BD%93.png" alt=""><br>
+一般来讲，定义透视投影的视锥，先定义near和far。再定义一个宽高比（Aspect ratio）（就是宽除以高）。还会定义视界（field of view,fovY），可视角度比较大就是广角。<br>
+<img src="fovY.png" alt=""><br>
+根据fov和near，很容易通过tan算出top（top=near*tan(fov/2)）（bottom=-top），有了top，又有了宽高比，就能算出left和right（right=aspect_ratio*top）（left=-right）</p>
 
   </div>
 </article>
