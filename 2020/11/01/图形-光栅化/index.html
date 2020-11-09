@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    name="viewport"
+  />
+  <meta name="description" content="Store some articles." />
+  <meta
+    name="keywords"
+    content="ksgfk&#39;s blog|Store some articles."
+  />
+  <link rel="shortcut icon" href="/img/logo.png" />
+  <title>ksgfk&#39;s blog</title>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="header-content">
+    <div class="header-title">
+      <a href="/" class="header-title-logo"
+        >ksgfk&#39;s blog</a
+      >
+    </div>
+    <nav class="header-navbar">
+      <ul class="header-menu">
+        
+        <li class="header-menu-item">
+          <a href="/"
+            >首页</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/archives"
+            >归档</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/categories"
+            >分类</a
+          >
+        </li>
+        
+        <li class="header-menu-item">
+          <a href="/tags"
+            >标签</a
+          >
+        </li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+      <main class="main">
+        <article class="post-info">
+  <h1 class="post-info-title">[图形]光栅化</h1>
+  <div class="post-meta">
+  <span class="post-time">2020-11-01</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+    
+  </span>
+  
+</div>
+
+  <div class="post-info-content">
+    <blockquote>
+<p>经过MVP变换后，得到一个范围是[-1,1]³的正方体。之后要将这个正方体画到屏幕上。<br>
+图形学认为，屏幕是一个像素的二维数组，数组大小就是屏幕分辨率。<br>
+光栅化这个过程就是往数组内填充像素。<br>
+一般来说，像素可以抽象为由红（R）绿（G）蓝（B）三种颜色混合组成的数据，颜色的值范围是0-255（当然实际像素远比这个复杂）</p>
+</blockquote>
+<h2 id="Screen-space-屏幕空间">Screen space 屏幕空间</h2>
+<p>左下角是坐标原点，向右是正x轴，向上是正y轴，像素坐标一定是整数。像素坐标从(0,0)开始。每个像素的坐标是它左下角那个点。像素坐标索引从(0,0)到(width-1,height-1)。虽然像素坐标用整数表示，但每个像素的中心在(x+0.5,y+0.5)<br>
+<img src="%E5%B1%8F%E5%B9%95%E7%A9%BA%E9%97%B4%E5%AE%9A%E4%B9%89.png" alt=""></p>
+<h2 id="Viewport-Transform-视口变换">Viewport Transform 视口变换</h2>
+<p>视口变换做的事情是，将视图变换得到的[-1,1]³正方体拉伸到与屏幕大小一致，z轴的值用于深度测试，所以不做任何改变。由于[-1,1]²的正方形，它的中心在坐标(0,0)，而(0,0)又是屏幕的左下角，所以再将正方形左下角对齐到左下角，只需要平移就可以了。最终可以得到视口矩阵<br>
+<img src="%E8%A7%86%E5%8F%A3%E7%9F%A9%E9%98%B5.png" alt=""></p>
+<h2 id="Rasterization-光栅化">Rasterization 光栅化</h2>
+<p>将[-1,1]³正方体变换到屏幕空间后（其实现在可能变成长方体了），屏幕空间中储存的还是连续的多边形，要将其显示在一格一格的像素上，就要将其打碎，离散化。</p>
+<blockquote>
+<p>这里的多边形默认为三角形。为什么是三角形？</p>
+<ul>
+<li>最基本的多边形</li>
+<li>任何其他多边形都可以被拆解为很多三角形</li>
+<li>三角形一定表示一个平面，而例如四边形可能会弯折</li>
+<li>三角形内部外部定义清晰（？）</li>
+<li>三角形三个顶点属性确定后，三角形面上属性可以插值</li>
+</ul>
+</blockquote>
+<h3 id="Frame-Buffer">Frame Buffer</h3>
+<p>现代设备显示图像，一般是内存（显存）中划定一块或多块区域储存像素信息，并告诉显示设备要显示哪一幅图，显示设备会将像素信息映射到对应的物理像素上</p>
+<h3 id="Sampling-采样">Sampling 采样</h3>
+<p>采样就是将函数离散化的过程。利用像素中心对屏幕空间进行采样，就是光栅化。<br>
+<img src="%E9%87%87%E6%A0%B7%E5%87%BD%E6%95%B0%E5%8E%9F%E5%9E%8B.png" alt=""><br>
+<img src="%E9%87%87%E6%A0%B7%E4%BC%AA%E4%BB%A3%E7%A0%81.png" alt=""><br>
+用一个函数来表示采样，传入三角形、x、y坐标，返回三角形是否在(x,y)内。<br>
+<img src="%E4%B8%89%E6%AC%A1%E5%8F%89%E4%B9%98%E5%88%A4%E6%96%AD%E5%83%8F%E7%B4%A0%E5%9C%A8%E4%B8%8D%E5%9C%A8%E4%B8%89%E8%A7%92%E5%BD%A2%E5%86%85.png" alt=""><br>
+这里我们判断像素中心是否处于三角形内，判断方法也很简单，用三角形三条边分别和像素中心叉乘，如果三个结果的方向大小都是正的或负的，则说明这个像素确实在三角形内。</p>
+<p>不过呢，万一这个像素中心点正好在三角形的边界上，怎么办？对于这类问题，在图形学中，要么不做处理，要么特殊处理。（这课里就不对它处理了233</p>
+<p>再看看刚刚的采样伪代码，我们对一个三角形光栅化的时候，把屏幕上所有像素点都测了一遍，事实上这没必要。<br>
+<img src="%E5%83%8F%E7%B4%A0%E7%A2%B0%E6%92%9E%E7%9B%92.png" alt=""><br>
+三角形只可能存在于蓝色的像素内。所以我们可以先求出三角形的轴向包围盒（Aixe Align Bounding Box）（缩写AABB），再对这个包围盒的范围进行光栅化（加速get√（还有很多其他的加速方法，行扫描？</p>
+<h2 id="Antialiasing-反走样-抗锯齿">Antialiasing 反走样/抗锯齿</h2>
+<p>一个三角形是一个连续的函数，给定屏幕中任意一个点，我们可以测试这个点是不是在三角形内部。关于三角形，我们可以认为它的颜色是均匀的，所以每个在三角形内的像素，我们都可以把它们涂成三角形的颜色。但是如果只是这样做，结果会得到一个类似三角形的图案。<br>
+<img src="%E5%83%8F%E7%B4%A0%E5%8C%96%E7%9A%84%E4%B8%89%E8%A7%92%E5%BD%A2.png" alt=""><img src="%E5%8E%9F%E7%89%88%E4%B8%89%E8%A7%92%E5%BD%A2.png" alt=""><br>
+抗锯齿就是为了解决这个原版和光栅化后的图形不一致的问题。</p>
+<p>（之后的关于抗锯齿都没看懂，反正就是把原图模糊一下（低通滤波，去掉高频信息，实际操作就是取该点周围点的颜色平均一下）再采样，锯齿就不明显了，大概原理是啥，用到的知识，频域啊时域啊，都是信号处理的，搞不懂，留个坑）</p>
+
+  </div>
+</article>
+
+      </main>
+      <footer class="footer">
+  <div class="footer-content">
+    <!-- <div class="copyright">
+      ©2020 - 2020 By ksgfk
+    </div> -->
+    <div>
+      <a rel="license noopener" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><img alt="知识共享许可协议" style="border-width:0"
+          src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />采用<a rel="license"
+        href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+    <div class="framework-info">
+      <span>驱动 - </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span
+        class="footer-separator">&nbsp;|&nbsp;</span><span>主题 - </span><a
+        href="https://github.com/onfuns/hexo-theme-pureness"><span>pureness</span></a>
+    </div>
+    
+  </div>
+</footer>
+    </div>
+    
+<!---------------google------------------->
+
+
+  </body>
+</html>
