@@ -149,7 +149,67 @@ Blinn-Phong模型使用了一个很聪明的办法，求出l和v的半程向量h
 <p>Gouraud shading可以算出每个顶点的法线，在三角形中也可以插值出任意一个点的法线方向，那么就可以对每个像素应用着色。<br>
 <img src="%E7%9D%80%E8%89%B2%E9%A2%91%E7%8E%87%E5%8C%BA%E5%88%AB.png" alt=""><br>
 其实这些着色模型各有优势，并没有谁比谁好。</p>
-<h2 id="Real-time-Rendering-Pipeline">Real-time Rendering Pipeline</h2>
+<h2 id="Texture-纹理">Texture 纹理</h2>
+<p>在现代GPU中，纹理是一块保存在内存中，可以范围查询的数据，因此纹理不仅仅是图片，可以称为纹理的太多了。</p>
+<ul>
+<li>环境光照（Environment Map）：把来自任何方向上的光照（直接光，间接光）记录在纹理上。假设光源无限远
+<ul>
+<li>Spherical Map：将环境光照记录在球上，并且可以展开。但是展开的时候有点小问题，上下两边的纹理是会被压缩的</li>
+<li>Cube Map：把光照信息存在立方体表面上，就解决了球面的问题。正方体六个面保存六张图片</li>
+</ul>
+</li>
+<li>凹凸/法线贴图（Bump/Normal Map）：定义纹理上的点的相对高度，高度变化-&gt;法线变化-&gt;着色结果变化</li>
+<li>位移贴图（Displacement Map）：真的移动顶点位置，法线贴图是假的，顶点没有移动，在模型边缘会露馅</li>
+<li>3D Procedural Noise：定义空间中任意一点的值</li>
+<li>Ambient Occlusion texture map（环境光遮蔽贴图）</li>
+</ul>
+<h2 id="Texture-Mapping-纹理映射">Texture Mapping 纹理映射</h2>
+<p>现实生活中，一个物体不同地方的漫反射系数都是不同的，我们希望模型的不同位置都能自定义不同的属性。</p>
+<blockquote>
+<p>一般纹理是一张图片</p>
+</blockquote>
+<blockquote>
+<p>任何一个三维物体表面都是二维的</p>
+</blockquote>
+<p>所以我们可以把任意一个三维物体的表面展开成一个二维平面。同样的，一张纹理我们也可以把它蒙到任意一个三维物体上。那么表面和纹理的坐标之间就有一种一一对应的映射关系。</p>
+<p><img src="%E7%BA%B9%E7%90%86%E5%9D%90%E6%A0%87.png" alt=""><br>
+<s>这图有点阴间</s></p>
+<blockquote>
+<p>在纹理上，我们也会定义一个坐标系，叫做纹理坐标（Texture Coordinates），通常用u、v来表示，uv的范围是[0,1]</p>
+</blockquote>
+<p>有些纹理是可以重用的，多个纹理拼接起来，它的左右或上下如果可以无缝衔接，这样的纹理叫做Tilable texture</p>
+<h3 id="Barycentric-Coordinates-重心坐标">Barycentric Coordinates 重心坐标</h3>
+<p>为了对三角形内的属性（什么属性都可以，纹理坐标啊、颜色啊、法线啊）进行插值，引入重心坐标的概念。<br>
+<img src="%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87.png" alt=""><br>
+A、B、C表示三角形三个顶点坐标，分别乘以一个系数，而这三个系数满足<strong>和是1</strong>且三个系数都是<strong>非负数</strong>的时候，这三个系数组成的二维坐标（去掉z）可以表示一个坐标。<br>
+<img src="%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87%E5%80%BC%E8%AE%A1%E7%AE%97.png" alt=""><br>
+坐标系数α等于与A顶点不相邻三角形Aa除以三角形总面积。<br>
+<img src="%E7%9C%9F%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87.png" alt=""><br>
+如果将三角形面积按以上方法分成3等份，那么分割后的三角形交点就是重心坐标。<br>
+<img src="%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87%E5%85%AC%E5%BC%8F.png" alt=""><br>
+最终可以从面积计算推出重心坐标公式（怎么推的…</p>
+<p>重心坐标有个小问题，在投影变换下不能保证投影后的重心坐标不变。因为投影后顶点坐标发生变化。如果投影完了再算一遍可能会法线重心坐标改变了。</p>
+<p>使用重心坐标将三角形内的任意一个点插值出来后，就可以去纹理上采样坐标点对于的颜色是多少，然后把颜色值当作漫反射系数，就相当于把纹理贴在了物体上。</p>
+<h3 id="Mipmap">Mipmap</h3>
+<p>有时候纹理分辨率太小了，而查询的时候又只是简单的四舍五入找最近的点，呈现出来的画面就会出现一大堆锯齿。如果我们想让纹理平滑一些，需要引入双线性插值（Bilinear Interpolation）。<br>
+<img src="%E5%8F%8C%E7%BA%BF%E6%80%A7%E6%8F%92%E5%80%BC.png" alt=""><br>
+我们去找它临近的4个点，先对上下两行水平方向的像素进行插值，可以得到两个结果，再对这两个结果进行插值，就可以得到这个像素的值了。这个值综合考虑了周围像素的值。还有效果更好的插值方法Bicubic，这里就不细嗦了。<br>
+<img src="%E6%9D%90%E8%B4%A8%E8%BF%87%E5%A4%A7.png" alt=""><br>
+这是材质过大时，还按照简单的四舍五入取像素点的方法渲染结果，远处出现了摩尔纹，近处出现了锯齿。图像走样了，因为远处的物体渲染时，每个像素覆盖的材质都会更多，但是如果简单的用一个点代表一块区域，就丢失了很多信息。</p>
+<p>解决方法也简单，采样更多的点就行了。但是会增加开销。</p>
+<p>事实上走样的本质是变化速度过快，采样频率跟不上，超采样就是用更搞得采样频率。但是如果我们不采样，立刻就能知道一块确定区域的像素平均值是多少，岂不是更好。</p>
+<p>为了解决这个问题，引入Mipmap。Mipmap可以快速查询矩形区域的像素值，使用mipmap进行采样叫做三线性插值。<br>
+<img src="mipmap.png" alt=""><br>
+（其实就是缩小纹理分辨率，每次缩一半<br>
+第0层是原图，第一层小一半。储存空间增大到4/3，也就是说mipmap占了1/3。<br>
+<img src="mipmap%E7%94%A8%E6%B3%95.png" alt=""><br>
+如何使用mipmp？（TODO）<br>
+当将需要查询的区域近似成四边形后，查询哪一层区域约等于一个像素，直接获取那一个像素的结果，就可以立刻得出区域内平均值。</p>
+<p>但是但是但是，如果查询结果在两层中间怎么办？插值。</p>
+<h3 id="Anisotropic-Filtering-各向异性过滤">Anisotropic Filtering 各向异性过滤</h3>
+<p>如果将超采样的结果作为标准，三线性插值的结果其实已经比较准确了，但是在某些情况下，远处的贴图还是糊的（Overblur），因为mipmap只是近似，而且只能近似四边形。各向异性过滤的结果比三线性插值更准确。各向异性过滤会生成Ripmap<br>
+（跳过，看不懂TODO）</p>
+<h2 id="Real-time-Rendering-Pipeline-实时渲染管线">Real-time Rendering Pipeline 实时渲染管线</h2>
 <p>我们现在知道如何光栅化物体，有了着色模型，知道了着色模型怎么用，现在将所有东西都合在一起，就已经可以得出渲染结果了。</p>
 <p>这个从三维模型之类的数据，到得出渲染结果并显示出来的过程，就是渲染管线，这里说的是实时渲染管线（Real-time Rendering Pipeline）<br>
 <img src="%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF.png" alt=""><br>
@@ -169,7 +229,7 @@ Blinn-Phong模型使用了一个很聪明的办法，求出l和v的半程向量h
       <footer class="footer">
   <div class="footer-content">
     <!-- <div class="copyright">
-      ©2020 - 2020 By ksgfk
+      ©2020 - 2021 By ksgfk
     </div> -->
     <div>
       <a rel="license noopener" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><img alt="知识共享许可协议" style="border-width:0"
