@@ -64,12 +64,85 @@
   
   <article class="post">
     <div class="post-title">
-      <a class="post-title-link" href="/2021/01/23/%E5%9B%BE%E5%BD%A2-%E5%87%A0%E4%BD%95/"
-        >[图形]几何</a
+      <a class="post-title-link" href="/2021/01/24/%E5%9B%BE%E5%BD%A2-%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA/"
+        >[图形]光线追踪</a
+      >
+    </div>
+    <div class="post-meta">
+  <span class="post-time">2021-01-24</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+    
+  </span>
+  
+</div>
+
+    <div class="post-content">
+      
+      <span><h2 id="Why-Ray-Tracing">Why Ray Tracing</h2>
+<p>光栅化成像很快，是一种近似的成像方法。但是对于全局效果很难处理。比如软阴影、多次反射、间接光照。光线追踪是准确成像，但是速度很慢</p>
+<h2 id="Light-Rays">Light Rays</</span>
+      
+    </div>
+    
+  </article>
+  <hr />
+  
+  <article class="post">
+    <div class="post-title">
+      <a class="post-title-link" href="/2021/01/23/%E5%9B%BE%E5%BD%A2-%E9%98%B4%E5%BD%B1/"
+        >[图形]阴影</a
       >
     </div>
     <div class="post-meta">
   <span class="post-time">2021-01-23</span>
+  
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
+    
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
+    
+    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+    
+  </span>
+  
+</div>
+
+    <div class="post-content">
+      
+      <span><p>光栅化着色只考虑局部着色的效果，并不考虑全局，因此在实现某些效果，比如环境光，阴影的时候会比较困难。</p>
+<h2 id="Shadows-阴影">Shadows 阴影</h2>
+<p>为了解决光栅化渲染时，阴影难以生成的问题，发明了Shadow mapping</p>
+<p>可以生成阴影图</span>
+      
+    </div>
+    
+  </article>
+  <hr />
+  
+  <article class="post">
+    <div class="post-title">
+      <a class="post-title-link" href="/2020/12/04/%E5%9B%BE%E5%BD%A2-%E5%87%A0%E4%BD%95/"
+        >[图形]几何</a
+      >
+    </div>
+    <div class="post-meta">
+  <span class="post-time">2020-12-04</span>
   
   <span class="post-meta-split">|</span>
   <span class="post-meta-category">
@@ -356,84 +429,6 @@
       
       <span><ul>
 <li>Unity中调用<code>UnityEngine.Object.Instantiate</code>函数进行对象复制是开销较大（相对）的做法，每帧如果只会创建几个对象那完全不用在意性能<s>万一一个对象特别复杂可能还是要在意一下</s>。但如果在一帧中，创建了上百甚至上千个对象（</span>
-      
-    </div>
-    
-  </article>
-  <hr />
-  
-  <article class="post">
-    <div class="post-title">
-      <a class="post-title-link" href="/2020/06/23/CSharp-%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F%E5%AE%9E%E8%B7%B5/"
-        >[C#]单例模式实践</a
-      >
-    </div>
-    <div class="post-meta">
-  <span class="post-time">2020-06-23</span>
-  
-  <span class="post-meta-split">|</span>
-  <span class="post-meta-category">
-    
-    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
-    </span
-  >
-   
-  <span class="post-meta-split">|</span>
-  <span class="post-meta-tag">
-    
-    <a href="/tags/C/">C#</a>
-    
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a>
-    
-  </span>
-  
-</div>
-
-    <div class="post-content">
-      
-      <span><ul>
-<li>单例，可以向其他对象提供一个<strong>全局唯一的</strong>对象，比较类似C的全局变量</li>
-<li>也就是说无论在哪，都能访问到<strong>相同的</strong>对象</li>
-<li>比如说Unity的游戏状态，可以由一个单例类管理，为了全局访问当前状态<</span>
-      
-    </div>
-    
-  </article>
-  <hr />
-  
-  <article class="post">
-    <div class="post-title">
-      <a class="post-title-link" href="/2020/06/22/Unity-%E5%B9%B6%E8%A1%8C%E6%93%8D%E4%BD%9CTransform/"
-        >[Unity]并行操作Transform</a
-      >
-    </div>
-    <div class="post-meta">
-  <span class="post-time">2020-06-22</span>
-  
-  <span class="post-meta-split">|</span>
-  <span class="post-meta-category">
-    
-    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
-    </span
-  >
-   
-  <span class="post-meta-split">|</span>
-  <span class="post-meta-tag">
-    
-    <a href="/tags/Unity/">Unity</a>
-    
-  </span>
-  
-</div>
-
-    <div class="post-content">
-      
-      <span><ul>
-<li>确定需要操作什么数据，这里就让所有物体全部向上移动</li>
-<li>编写一个结构体，实现<code>UnityEngine.Jobs.IJobParallelForTransform</code>接口</li>
-<li><s>Burst强无敌</s></li>
-</ul>
-<fi</span>
       
     </div>
     

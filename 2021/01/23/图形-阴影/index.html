@@ -60,41 +60,54 @@
 </header>
 
       <main class="main">
-        <section class="post-archive">
-  <ul class="post-list-no-des">
+        <article class="post-info">
+  <h1 class="post-info-title">[图形]阴影</h1>
+  <div class="post-meta">
+  <span class="post-time">2021-01-23</span>
   
-  <div>
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-category">
     
-    <h2>2020</h2>
+    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </span
+  >
+   
+  <span class="post-meta-split">|</span>
+  <span class="post-meta-tag">
     
-  </div>
-  <li class="post-list-no-des-item">
-    <span class="post-list-no-des-item-date"
-      >06-22</span
-    >
-    <a class="post-title" href="/2020/06/22/Hello-Hexo/">Hello Hexo!</a>
-  </li>
+    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+    
+  </span>
   
-  <div>
-    
-  </div>
-  <li class="post-list-no-des-item">
-    <span class="post-list-no-des-item-date"
-      >05-19</span
-    >
-    <a class="post-title" href="/2020/05/19/%E7%AE%80%E5%8D%95%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/">[数学]简单线性代数</a>
-  </li>
-  
+</div>
+
+  <div class="post-info-content">
+    <p>光栅化着色只考虑局部着色的效果，并不考虑全局，因此在实现某些效果，比如环境光，阴影的时候会比较困难。</p>
+<h2 id="Shadows-阴影">Shadows 阴影</h2>
+<p>为了解决光栅化渲染时，阴影难以生成的问题，发明了Shadow mapping</p>
+<p>可以生成阴影图</p>
+<h3 id="Shadow-Mapping">Shadow Mapping</h3>
+<p>这是一种图像空间中的算法，不需要知道场景中的几何信息。阴影会走样。</p>
+<p>一个点不在阴影里，也就是说，摄像机可以看到这个点，并且光源也可以看到这个点。这是阴影图的生成原理</p>
+<p>点光源生成阴影算法过程：</p>
+<ul>
+<li>从光源看向场景，可以找到一系列可以被光源看到的点，并且生成一幅图片。图片上记录的是最先看到的点的深度。<br>
+<img src="%E7%94%BB%E6%B7%B1%E5%BA%A6%E5%9B%BE.png" alt=""><br>
+<img src="%E5%85%89%E6%BA%90%E6%B7%B1%E5%BA%A6%E5%9B%BE.png" alt=""></li>
+<li>再从摄像机看场景，也可以看到很多点。将看到的点投影回光源成像的平面上，可以从深度图上获取一个点。如果这两个点的深度一致，也就是说这个点可以被相机和光源看到。如果深度不一致，那么光源看不到这个点。<br>
+<img src="%E4%BB%8E%E6%91%84%E5%83%8F%E6%9C%BA%E7%9C%8B.png" alt=""><br>
+<img src="%E6%AF%94%E8%BE%83%E6%B7%B1%E5%BA%A6.png" alt=""><br>
+没有绿色的地方就是阴影</li>
 </ul>
-<script></script>
+<p>阴影图其实也有些问题</p>
+<ul>
+<li>精度不够</li>
+<li>阴影图本身如果分辨率过低还会导致走样</li>
+<li>硬阴影，只能用在点光源</li>
+</ul>
 
-</section>
-
-<nav class="page-nav">
-  <a class="extend prev" rel="prev" href="/archives/2020/">上一页</a><a class="page-number" href="/archives/2020/">1</a><span class="page-number current">2</span>
-</nav>
-
-
+  </div>
+</article>
 
       </main>
       <footer class="footer">
