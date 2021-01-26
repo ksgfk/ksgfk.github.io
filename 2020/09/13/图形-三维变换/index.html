@@ -1,102 +1,247 @@
+
+
 <!DOCTYPE html>
-<html>
-  <head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
-    name="viewport"
-  />
-  <meta name="description" content="Store some articles." />
-  <meta
-    name="keywords"
-    content="ksgfk&#39;s blog|Store some articles."
-  />
-  <link rel="shortcut icon" href="/img/logo.png" />
-  <title>ksgfk&#39;s blog</title>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
   
-<link rel="stylesheet" href="/css/style.css">
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Store some articles.">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  <title>[图形]三维变换 - ksgfk&#39;s blog</title>
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
-  <body>
-    <div class="container">
-      <header class="header">
-  <div class="header-content">
-    <div class="header-title">
-      <a href="/" class="header-title-logo"
-        >ksgfk&#39;s blog</a
-      >
-    </div>
-    <nav class="header-navbar">
-      <ul class="header-menu">
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/idea.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>ksgfk's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
         
-        <li class="header-menu-item">
-          <a href="/"
-            >首页</a
-          >
-        </li>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
         
-        <li class="header-menu-item">
-          <a href="/archives"
-            >归档</a
-          >
-        </li>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
         
-        <li class="header-menu-item">
-          <a href="/categories"
-            >分类</a
-          >
-        </li>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
         
-        <li class="header-menu-item">
-          <a href="/tags"
-            >标签</a
-          >
-        </li>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
         
       </ul>
-    </nav>
+    </div>
   </div>
-</header>
+</nav>
 
-      <main class="main">
-        <article class="post-info">
-  <h1 class="post-info-title">[图形]三维变换</h1>
-  <div class="post-meta">
-  <span class="post-time">2020-09-13</span>
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="[图形]三维变换">
+              
+            </span>
+
+            
+              <div class="mt-3">
   
-  <span class="post-meta-split">|</span>
-  <span class="post-meta-category">
-    
-    <a href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
-    </span
-  >
-   
-  <span class="post-meta-split">|</span>
-  <span class="post-meta-tag">
-    
-    <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
-    
-  </span>
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-09-13 15:34" pubdate>
+        2020年9月13日 下午
+      </time>
+    </span>
   
 </div>
 
-  <div class="post-info-content">
-    <p>首先补充一些三维空间下的常用矩阵</p>
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      18
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">[图形]三维变换</h1>
+            
+            <div class="markdown-body">
+              <p>首先补充一些三维空间下的常用矩阵</p>
 <p>矩阵的原理和二维下的推导基本一致</p>
 <h2 id="3D-Transform-三维变换">3D Transform 三维变换</h2>
 <p>基本原理和二维变换一致</p>
 <h3 id="齐次坐标下的点和向量定义">齐次坐标下的点和向量定义</h3>
-<p><img src="%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%87%E4%B8%8B%E7%9A%84%E7%82%B9%E5%92%8C%E5%90%91%E9%87%8F.png" alt=""></p>
+<p><img src="%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%87%E4%B8%8B%E7%9A%84%E7%82%B9%E5%92%8C%E5%90%91%E9%87%8F.png" srcset="/img/loading.gif" alt=""></p>
 <h3 id="仿射变换一般形式">仿射变换一般形式</h3>
-<p><img src="%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F.png" alt=""></p>
+<p><img src="%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F.png" srcset="/img/loading.gif" alt=""></p>
 <h3 id="缩放和平移矩阵">缩放和平移矩阵</h3>
-<p><img src="%E7%BC%A9%E6%94%BE%E5%92%8C%E5%B9%B3%E7%A7%BB.png" alt=""></p>
+<p><img src="%E7%BC%A9%E6%94%BE%E5%92%8C%E5%B9%B3%E7%A7%BB.png" srcset="/img/loading.gif" alt=""></p>
 <h3 id="一般旋转矩阵">一般旋转矩阵</h3>
-<p><img src="%E6%97%8B%E8%BD%AC.png" alt=""><br>
+<p><img src="%E6%97%8B%E8%BD%AC.png" srcset="/img/loading.gif" alt=""><br>
 绕y轴旋转，右上的sin是正号，因为z叉乘x才是正的y</p>
 <h3 id="罗德里格斯旋转公式">罗德里格斯旋转公式</h3>
-<p><img src="%E7%BD%97%E5%BE%B7%E9%87%8C%E6%A0%BC%E6%96%AF%E5%85%AC%E5%BC%8F.png" alt=""><br>
+<p><img src="%E7%BD%97%E5%BE%B7%E9%87%8C%E6%A0%BC%E6%96%AF%E5%85%AC%E5%BC%8F.png" srcset="/img/loading.gif" alt=""><br>
 n表示旋转轴（默认旋转轴过原点，n是方向），α表示旋转角</p>
 <blockquote>
 <p>四元数一般用于旋转插值</p>
@@ -120,18 +265,18 @@ n表示旋转轴（默认旋转轴过原点，n是方向），α表示旋转角<
 <ul>
 <li>假设摄像机目前位置在向量e，看向向量g，向上的方向是向量t</li>
 <li>将摄像机位置平移到原点，可以写出平移矩阵T<br>
-<img src="%E5%B9%B3%E7%A7%BB%E6%91%84%E5%83%8F%E6%9C%BA.png" alt=""></li>
+<img src="%E5%B9%B3%E7%A7%BB%E6%91%84%E5%83%8F%E6%9C%BA.png" srcset="/img/loading.gif" alt=""></li>
 <li>接着将g旋转到-Z轴方向，将t旋转到Y轴方向，将 g叉乘t 旋转到X轴方向。但这样不是很好写，实际上我们可以先求逆矩阵（因为旋转矩阵是正交矩阵，所以旋转矩阵的逆就是它的转置）因此我们先求 X轴旋转到 g叉乘t ，Y轴旋转到t，Z轴旋转到-g<br>
-<img src="%E6%97%8B%E8%BD%AC%E6%91%84%E5%83%8F%E6%9C%BA%E7%9A%84%E9%80%86%E7%9F%A9%E9%98%B5.png" alt=""><br>
+<img src="%E6%97%8B%E8%BD%AC%E6%91%84%E5%83%8F%E6%9C%BA%E7%9A%84%E9%80%86%E7%9F%A9%E9%98%B5.png" srcset="/img/loading.gif" alt=""><br>
 接着得出它的转置，就是旋转矩阵R<br>
-<img src="%E6%91%84%E5%83%8F%E6%9C%BA%E6%97%8B%E8%BD%AC%E7%9F%A9%E9%98%B5%E7%9A%84%E9%80%86%E7%9A%84%E8%BD%AC%E7%BD%AE.png" alt=""></li>
+<img src="%E6%91%84%E5%83%8F%E6%9C%BA%E6%97%8B%E8%BD%AC%E7%9F%A9%E9%98%B5%E7%9A%84%E9%80%86%E7%9A%84%E8%BD%AC%E7%BD%AE.png" srcset="/img/loading.gif" alt=""></li>
 <li>最后视图变换矩阵M就是R乘T<br>
-<img src="%E8%A7%86%E5%9B%BE%E7%9F%A9%E9%98%B5.png" alt=""></li>
+<img src="%E8%A7%86%E5%9B%BE%E7%9F%A9%E9%98%B5.png" srcset="/img/loading.gif" alt=""></li>
 <li>其他物体都要和摄像机一起做这个变换 哦（所以一般模型变换和视图变换一起出现）</li>
 </ul>
 <h2 id="Projection-Transformation-投影变换">Projection Transformation 投影变换</h2>
 <p>投影变换分为正交投影（Orthographic）和透视投影（Perspective）。正交投影中，互相平行的线，投影完后它们还是平行的，而透视投影会逐渐靠近交汇到一起。再简单来说，透视投影近大远小，正交投影是多大就是多大，不会因为摄像机的距离改变。（但是鸽子到底为什么这么大呢.jpg）<br>
-<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%92%8C%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1.png" alt=""></p>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%92%8C%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1.png" srcset="/img/loading.gif" alt=""></p>
 <h3 id="Orthographic-Projection-正交投影">Orthographic Projection 正交投影</h3>
 <h4 id="简单理解正交投影干了啥">简单理解正交投影干了啥</h4>
 <ol>
@@ -141,9 +286,9 @@ n表示旋转轴（默认旋转轴过原点，n是方向），α表示旋转角<
 </ol>
 <h4 id="一般做法">一般做法</h4>
 <p>在空间中划出一块长方体区域，将它映射到一个标准立方体（canonical cube）中<br>
-<img src="%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1%E7%9A%84%E5%B8%B8%E8%A7%84%E5%81%9A%E6%B3%95.png" alt=""><br>
+<img src="%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1%E7%9A%84%E5%B8%B8%E8%A7%84%E5%81%9A%E6%B3%95.png" srcset="/img/loading.gif" alt=""><br>
 将原长方体移动到原点，再把三条轴分别拉出-1到1的范围（通过缩放）<br>
-<img src="%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5.png" alt=""></p>
+<img src="%E6%AD%A3%E4%BA%A4%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5.png" srcset="/img/loading.gif" alt=""></p>
 <blockquote>
 <p>需要注意的是，右手坐标系中，划分的长方体区域其实是近大于远（n&gt;f），在左手坐标系中才是远大于近（比如OpenGL）</p>
 </blockquote>
@@ -158,7 +303,7 @@ n表示旋转轴（默认旋转轴过原点，n是方向），α表示旋转角<
 <h4 id="如何建立透视投影">如何建立透视投影</h4>
 <ul>
 <li>类比正交投影，也要划分一个范围。从一个点延伸出一个四棱锥，定义近的面（n）和远的面（f），n面比f面小<br>
-<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9A%84%E8%8C%83%E5%9B%B4.png" alt=""></li>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9A%84%E8%8C%83%E5%9B%B4.png" srcset="/img/loading.gif" alt=""></li>
 <li>然后把f面挤成和n面一样大（就是把四棱锥挤成长方体），再做一次正交投影</li>
 </ul>
 <blockquote>
@@ -170,53 +315,238 @@ n表示旋转轴（默认旋转轴过原点，n是方向），α表示旋转角<
 </ul>
 </blockquote>
 <p>为了挤压四棱锥，我们从四棱锥侧面看它<br>
-<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%9B%9B%E6%A3%B1%E9%94%A5%E4%BE%A7%E9%9D%A2.png" alt=""><br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%9B%9B%E6%A3%B1%E9%94%A5%E4%BE%A7%E9%9D%A2.png" srcset="/img/loading.gif" alt=""><br>
 (x’,y’,z’)和(x,y,z)构成了相似三角形，而近平面与原点的距离（n）和远平面与原点的距离（z）我们都知道，就可以得出结论 y’和y的比值 等于 n和z的比值。进一步，任意一个平面（在近远平面内且平行于两平面的面）中的点的y&quot;和y’的比值，都等于n和z&quot;（该平面的z）的比值。所以可以写出点的齐次坐标变化<br>
-<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B51.png" alt=""><br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B51.png" srcset="/img/loading.gif" alt=""><br>
 现在我们还不知道z如何变化，但是已知原来的点的齐次坐标，已知现在的点的部分信息，可以将部分数据填入矩阵了<br>
-<img src="%E5%86%99%E5%87%BA%E9%83%A8%E5%88%86%E7%9F%A9%E9%98%B5%E6%95%B0%E6%8D%AE.png" alt=""><br>
+<img src="%E5%86%99%E5%87%BA%E9%83%A8%E5%88%86%E7%9F%A9%E9%98%B5%E6%95%B0%E6%8D%AE.png" srcset="/img/loading.gif" alt=""><br>
 观察近平面的任意点z’，因为规定的存在，所以z’不会变。而远平面的z，其实也不会有任何改变。可以写出近平面的点的变换<br>
-<img src="%E8%BF%91%E5%B9%B3%E9%9D%A2%E7%9A%84z%E7%82%B9.png" alt=""><br>
+<img src="%E8%BF%91%E5%B9%B3%E9%9D%A2%E7%9A%84z%E7%82%B9.png" srcset="/img/loading.gif" alt=""><br>
 所以对于给定的深度n，可以知道第三个数是n²。<br>
-<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E7%AC%AC%E4%B8%89%E8%A1%8C.png" alt=""><br>
+<img src="%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E7%AC%AC%E4%B8%89%E8%A1%8C.png" srcset="/img/loading.gif" alt=""><br>
 所以透视矩阵投影第三行前两个数就是(0,0,A,B)，但后两个数不能确定（因为只根据近平面的性质还不能推出来，比如A等于0，B等于n²，结果是n²，但是A等于n，B等于0，结果还是n²）。<br>
-<img src="%E8%BF%91%E8%BF%9C%E5%B9%B3%E9%9D%A2%E5%88%97%E5%87%BA%E5%85%B3%E7%B3%BB.png" alt=""><br>
+<img src="%E8%BF%91%E8%BF%9C%E5%B9%B3%E9%9D%A2%E5%88%97%E5%87%BA%E5%85%B3%E7%B3%BB.png" srcset="/img/loading.gif" alt=""><br>
 再看远平面，远平面的特殊点f（就是最中间的点，任何一个轴都不会变）,将(0,0,A,B)乘以这个点的齐次坐标可以得到一个方程，将(0,0,A,B)乘以近平面的点也可以得到一个方程。两方程联立就可以得出A和B的关系<br>
-<img src="A%E5%92%8CB%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt=""><br>
+<img src="A%E5%92%8CB%E7%9A%84%E5%85%B3%E7%B3%BB.png" srcset="/img/loading.gif" alt=""><br>
 最终我们就可以写出透视投影矩阵。n是近平面的z点，f是远平面的z点</p>
 <p><em>2020/9/20更新</em></p>
-<h3 id="总结一下">总结一下</h3>
-<p><img src="%E5%AE%9A%E4%B9%89%E8%A7%86%E9%94%A5%E4%BD%93.png" alt=""><br>
+<h1>总结一下</h1>
+<p><img src="%E5%AE%9A%E4%B9%89%E8%A7%86%E9%94%A5%E4%BD%93.png" srcset="/img/loading.gif" alt=""><br>
 一般来讲，定义透视投影的视锥，先定义near和far。再定义一个宽高比（Aspect ratio）（就是宽除以高）。还会定义视界（field of view,fovY），可视角度比较大就是广角。<br>
-<img src="fovY.png" alt=""><br>
+<img src="fovY.png" srcset="/img/loading.gif" alt=""><br>
 根据fov和near，很容易通过tan算出top（top=near*tan(fov/2)）（bottom=-top），有了top，又有了宽高比，就能算出left和right（right=aspect_ratio*top）（left=-right）</p>
 
-  </div>
-</article>
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning"><a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" srcset="/img/loading.gif" /></a><br />除非特殊说明，否则一律采用<a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[图形]光栅化</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/07/13/%E5%9B%BE%E5%BD%A2-%E4%BA%8C%E7%BB%B4%E5%8F%98%E6%8D%A2/">
+                        <span class="hidden-mobile">[图形]二维变换</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
 
-      </main>
-      <footer class="footer">
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
   <div class="footer-content">
-    <!-- <div class="copyright">
-      ©2020 - 2021 By ksgfk
-    </div> -->
-    <div>
-      <a rel="license noopener" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><img alt="知识共享许可协议" style="border-width:0"
-          src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />采用<a rel="license"
-        href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
-    </div>
-    <div class="framework-info">
-      <span>驱动 - </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span
-        class="footer-separator">&nbsp;|&nbsp;</span><span>主题 - </span><a
-        href="https://github.com/onfuns/hexo-theme-pureness"><span>pureness</span></a>
-    </div>
-    
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
   </div>
+  
+
+  
+
+  
 </footer>
-    </div>
-    
-<!---------------google------------------->
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
 
 
-  </body>
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
 </html>
