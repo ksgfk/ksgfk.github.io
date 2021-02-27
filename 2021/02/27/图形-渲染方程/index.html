@@ -17,7 +17,7 @@
   <meta name="description" content="Store some articles.">
   <meta name="author" content="ksgfk">
   <meta name="keywords" content="">
-  <title>[图形]辐射度量学 - ksgfk&#39;s blog</title>
+  <title>[图形]渲染方程 - ksgfk&#39;s blog</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
@@ -162,7 +162,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="[图形]辐射度量学">
+            <span class="h2" id="subtitle" title="[图形]渲染方程">
               
             </span>
 
@@ -172,8 +172,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-02-26 11:30" pubdate>
-        2021年2月26日 中午
+      <time datetime="2021-02-27 10:10" pubdate>
+        2021年2月27日 上午
       </time>
     </span>
   
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.1k 字
+      1.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      14
+      18
        分钟
     </span>
   
@@ -224,98 +224,80 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">[图形]辐射度量学</h1>
+            <h1 style="display: none">[图形]渲染方程</h1>
             
             <div class="markdown-body">
-              <h2 id="Radiometry">Radiometry</h2>
-<p>辐射度量学是基于物理的渲染（Physically Based Rendering）基础<br>
-<img src="%E8%BE%90%E5%B0%84%E5%BA%A6%E9%87%8F%E5%AD%A6%E6%A6%82%E8%A7%88.jpg" srcset="/img/loading.gif" alt=""></p>
-<h2 id="Solid-Angles">Solid Angles</h2>
-<p><img src="%E7%AB%8B%E4%BD%93%E8%A7%92.png" srcset="/img/loading.gif" alt=""><br>
-定义：球面上的投影面积与半径的平方之比<br>
-<img src="%E7%90%83%E5%9D%90%E6%A0%87%E7%B3%BB.png" srcset="/img/loading.gif" alt=""><br>
-在球坐标系中，任意球面的微分面积为：<br>
-$$ \mathrm{d}A=(rsin\theta\mathrm{d}\phi)(r\mathrm{d}\theta)=r^2(sin\theta\mathrm{d}\theta\mathrm{d}\phi) $$<br>
-那么微分立体角就是<br>
-$$ \mathrm{d}\omega=\frac{\mathrm{d}A}{r^2}=sin\theta\mathrm{d}\theta\mathrm{d}\phi $$<br>
-（A代表投影的面积）</p>
-<p>对上式积分到整个球体<br>
+              <h2 id="BRDF">BRDF</h2>
+<p><img src="450px-BRDF_Diagram.svg.png" srcset="/img/loading.gif" alt="https://en.wikipedia.org/wiki/File:BRDF_Diagram.svg"></p>
+<blockquote>
+<p>The bidirectional reflectance distribution function (BRDF; $f_r(\omega_i,\omega_r)$) is a function of four real variables that defines how light is reflected at an opaque surface. It is employed in the optics of real-world light, in computer graphics algorithms, and in computer vision algorithms. The function takes an incoming light direction, $\omega_i$, and outgoing direction, $\omega_r$ (taken in a coordinate system where the surface normal $\mathbf{n}$ lies along the z-axis), and returns the ratio of reflected radiance exiting along $\omega_r$ to the irradiance incident on the surface from direction $\omega_i$. Each direction $\omega$ is itself parameterized by azimuth angle $\phi$ and zenith angle $\theta$ , therefore the BRDF as a whole is a function of 4 variables. The BRDF has units sr−1, with steradians (sr) being a unit of solid angle.</p>
+</blockquote>
+<p>表示光与物体表面进行交互然后反射出去，是物体对光的一个作用</p>
+<p>定义光如何在不透明表面反射的函数，它有四个参数</p>
+<p>想象一下，有一束光线打到镜子上，它会反射到某个方向上去。如果光打到漫反射物体，会被反射到四面八方。我们想要一个函数来描述反射这一性质。</p>
+<p>我们可以描述成，光从某个方向进来，并且反射到某个方向上去，这部分反射的能量应该是多少（不同的反射方向上会分布多少能量）<br>
+<img src="%E5%8F%8D%E5%B0%84.png" srcset="/img/loading.gif" alt=""><br>
+从$\omega_i$来的Radiance打到$\mathrm{d}A$上（现在面积就是单位面积了）,这部分面积会吸收能量。再把吸收的能量发射出去。</p>
+<p>相当于入射的Radiance会在表面转化成Power，然后Power又会辐射到另一个方向上</p>
+<p>那么那一块单位面积从某一个方向上的立体角接收到的Irradiance有<br>
+$$ \mathrm{d}E(\omega_i)=L(\omega_i)cos\theta_i\mathrm{d}\omega_i $$<br>
+这些接收到的能量会被分配到各个不同的立体角上发射出去，但是在某个方向（某个立体角）上会辐射多少能量？</p>
+<p>立体角上辐射多少能量和总能量有比例关系，对于任何一个出射方向都算出radiance，然后除以面积上的irradiance，这就是BRDF的定义<br>
+<img src="BRDF%E5%AE%9A%E4%B9%89.png" srcset="/img/loading.gif" alt=""><br>
+$$ f_r(\omega_i\to\omega_r)=\frac{\mathrm{d}L_r(\omega_r)}{\mathrm{d}E_i(\omega_i)}=\frac{\mathrm{d}L_r(\omega_r)}{L_i(\omega_i)cos\theta_i\mathrm{d}\omega_i} $$<br>
+单位：$\frac{1}{sr}$</p>
+<h2 id="Reflection-Equation">Reflection Equation</h2>
+<p>既然BRDF描述了一个点（微小面积）在任何方向上的反射结果。现在我们盯着某一个反射方向，并且我们知道物体表面可以接收四面八方的光照，那对于每一个入射方向的radiance，乘以$cos\theta_i\mathrm{d}\omega_i$（这里乘上这个之后就变成了irradiance）再乘以BRDF（变成出射的radiance），再把结果加起来，就得到了，这个点在所有可能的入射方向上，最后反射到某个方向上的radiance<br>
+<img src="%E5%8F%8D%E5%B0%84%E6%96%B9%E7%A8%8B.png" srcset="/img/loading.gif" alt=""><br>
+任何光照的进入方向对观测点出射方向的贡献的叠加<br>
+$$ L_r(p,\omega_r)=\int_{H^2} f_r(p,\omega_i\to\omega_r)L_i(p,\omega_i)cos\theta_i\mathrm{d}\omega_i $$<br>
+从某个方向看某个着色点其实是个积分，积分考虑任何方向的$\omega_i$的radiance到着色点，经过BRDF变成出射的radiance</p>
+<p>根据反射方程定义，可以推断，除了光源对着色点有贡献，其他物体反射的光其实对着色点也有贡献，也就是说，入射的radiance不一定是光源的，也可能是其他物体反射出来的radiance <s>公交车</s>。很像递归，毕竟光线在场景中不止弹射一次（如果限制只弹一次，那就只有光源的radiance）。</p>
+<h2 id="Rendering-Equation">Rendering Equation</h2>
+<p>万一物体自己还会发光，再把这部分光叠加到反射方程上<br>
+$$ L_o(p,\omega_o)=L_e(p,\omega_o)+\int_{\Omega^+} f_r(p,\omega_i\to\omega_o)L_i(p,\omega_i)(n\cdot\omega_i)\mathrm{d}\omega_i $$<br>
+$cos\theta_i$改写为法线n点乘入射方向</p>
+<p>其中：<br>
+$L_o$：单位时间内$p$点向$\omega_o$方向贡献的光的radiance<br>
+$L_e$：单位时间内$p$点发的光向$\omega_o$方向贡献的radiance<br>
+$f_r(p,\omega_i\to\omega_o)$：BRDF，表示在$p$点，$\omega_i$方向来的光与物体表面进行交互，反射到$\omega_o$方向的光的radiance<br>
+$L_i$：表示单位时间内$p$点接受的$\omega_i$方向的radiance<br>
+$n\cdot\omega_i$：表示光来的方向由于角度带来的衰减<br>
+$\Omega^+$：表示半球面，是反射发生的那个半球面</p>
+<p>现在无论是其他物体反射的光，还是发光体发出的光，都当作发光体，公式不需要任何修正</p>
+<p>显然，$L_o$和$L_i$未知，其他是已知的</p>
+<p>现在对方程简写<br>
+$$ l(u)=e(u)+\int l(v) K(u,v)\mathrm{d}v $$<br>
+$l$是辐射出去的radiance<br>
+$u$是射入，$v$是射出<br>
+$e(u)$是自己发光<br>
+$K(u,v)$是BRDF</p>
+<p>进一步的，将方程简化为算子<br>
+$$L=E+KL$$<br>
+辐射出来的所有能量 等于 自己发光 加上 其他辐射到物体上并被反射的能量</p>
+<p>这个算子可以被离散成矩阵方程，$L$和$E$是向量，$K$是矩阵<br>
 $$<br>
-\Omega=\int_{S^2}\mathrm{d}\omega<br>
-=\int_{0}^{2\pi}\int_{0}^{\pi}sin\theta\mathrm{d}\theta\mathrm{d}\phi<br>
-=4\pi<br>
+\begin{split}<br>
+L&amp;=E+KL \newline<br>
+IL-KL&amp;=E \newline<br>
+(I-K)L&amp;=E \newline<br>
+L&amp;=(I-K)^{-1}E \newline<br>
+L&amp;=(I+K+K^2+K^3+…)E \newline<br>
+L&amp;=E+KE+K^2E+K^3E+… \newline<br>
+\end{split}<br>
 $$<br>
-单位steradians（球面度，简写sr）</p>
-<h2 id="Radiant-Flux-Power">Radiant Flux(Power)</h2>
-<p>定义：单位时间释放(emitted)、反射(emitted)、透射(transmitted)或接受(received)的能量。单位是 $W$ 或 $lm$<br>
-$$ \Phi=\lim_{x \to 0} \frac{\Delta Q}{\Delta t}=\frac{\mathrm{d}Q}{\mathrm{d}t}$$<br>
-反过来，给定flux和时间，可以算出这段时间的总能量<br>
-$$ Q=\int_{t0}^{t1}\Phi(t)\mathrm{d}t $$<br>
-（拿灯泡来说，就是灯泡有多亮）</p>
-<h2 id="Radiant-Intensity">Radiant Intensity</h2>
-<p><img src="%E8%BE%90%E7%85%A7%E5%BC%BA%E5%BA%A6.png" srcset="/img/loading.gif" alt=""><br>
-定义：辐射(发光)强度是单位立体角(solid angle)由点光源发出的功率(power)<br>
-$$ I(\omega)=\frac{\mathrm{d}\Phi}{\mathrm{d}\omega} $$<br>
-单位：$\frac{W(lm)}{sr}=cd$ candela（坎德拉）</p>
-<p>点光源任意方向上的Radiant Intensity等于$I=\frac{\Phi}{4\pi}$（因为球体的立体角是）</p>
-<p>（灯泡一直在往四面八方发射能量，那某个方向上的能量就是Radiant Intensity）</p>
-<h2 id="Irradiance">Irradiance</h2>
-<p>定义：每(垂直/投影)单位面积入射到一个表面上一点的辐射通量(功率)。单位：lux，照度<br>
-$$ E(x)=\lim_{\Delta A \to 0}\frac{\Delta\Phi(x)}{\Delta A}=\frac{\mathrm{d}\Phi(x)}{\mathrm{d}A} $$<br>
-只和面积有关</p>
-<p>我们也可以通过irradiance和面积知道flux<br>
-$$ \Phi=\int_{A}E(x)\mathrm{d}A $$<br>
-（就是被灯泡照射的物体，它表面接收了多少能量）</p>
-<h3 id="Lambert-Law">Lambert Law</h3>
-<p><img src="Lambert%E5%AE%9A%E5%BE%8B.png" srcset="/img/loading.gif" alt=""><br>
-区域接收到的能量，和 入射光线 与 区域的法线方向 的夹角的余弦值成正比。</p>
-<p>Irradiance方程也能帮助理解Lambert定律。</p>
-<p>如果面积光和表面平行也就是$A_1=A$，那么表面和面积光面积相等，Irradiance就等于flux除以面积<br>
-$$ E_1=\frac{\Phi}{A} $$<br>
-然而，如果面积光和表面有一个夹角，那么表面受到光照的面积会变大。面积大约为$A_2=\frac{A}{cos\theta}$。所以<br>
-$$ E_2=\frac{\Phi cos\theta}{A} $$</p>
-<h3 id="Irradiance-Falloff">Irradiance Falloff</h3>
-<p><img src="irradiance%E8%A1%B0%E5%87%8F.png" srcset="/img/loading.gif" alt=""><br>
-球的立体角是$4\pi$，带入公式，球面的Irradiance是$E=\frac{\Phi}{4\pi r^2}$</p>
-<p>可以得出结论，Irradiance传播过程中会衰减，和半径平方成正比</p>
-<h2 id="Radiance">Radiance</h2>
-<p>定义：一个表面在每单位立体角、每单位投影面积上所发射(emitted)、反射(reflected)、透射(transmitted)或接收(received)的Radiant Flux。</p>
-<p>（光线传播过程中度量它的属性）</p>
-<p>$$<br>
-L(p,\omega)=\lim_{\Delta\omega\to0}\frac{\Delta E_\omega§}{\Delta\omega}=\frac{\mathrm{d}E_\omega§}{\mathrm{d}\omega}<br>
-=\frac{\mathrm{d}^2\Phi(p,\omega)}{\mathrm{d}\omega\mathrm{d}Acos\theta}<br>
-$$<br>
-（单位：nit，$\frac{W}{sr\quad m^2}$）<br>
-（这里多出来的$cos\theta$是在计算光线$\omega$方向上的，投影的面积）</p>
-<h3 id="关系">关系</h3>
-<p>Radiant Intensity：单位立体角的Radiant Flux</p>
-<p>Irradiance：单位投影面积的Radiant Flux</p>
-<p>Radiance：单位投影面积的Intensity</p>
-<p>Radiance还可以是：单位立体角的Irradiance(单位立体角、单位投影面积的Radiant Flux)</p>
-<p>（intensity和irradiance只微分一次，radiance微分两次）</p>
-<h3 id="Incident-Radiance">Incident Radiance</h3>
-<p>指到达表面的单位立体角的Irradiance。即它是沿着给定光线到达表面的光(入射方向指向表面)</p>
-<p>（就是考虑某个方向上，有多少光射到单位表面上）<br>
-<img src="IncidentRadiance.jpg" srcset="/img/loading.gif" alt=""></p>
-<h3 id="Exiting-Radiance">Exiting Radiance</h3>
-<p>离开表面的单位投影面积的辐射强度。例如：对于面光(area light)，它是沿着给定光线发射的光(出射方向指向表面)</p>
-<p>（就是一个单位表面往某个方向上发射了多少光）<br>
-<img src="ExitingRadiance.jpg" srcset="/img/loading.gif" alt=""></p>
+结论中，$E$是光源，$KE$是直接光照，反射一次，$K^2E$是间接光照，反射两次，依此类推</p>
+<p>将所有不同光线弹射次数的结果加起来，就是全局光照（Global Illumination）</p>
+<p>光栅化一般只做$L=E+KE$</p>
 <h2 id="总结">总结</h2>
-<p>Irradiance：面积$\mathrm{d}A$接收的总Radiant Flux<br>
-Radiance：在面积$\mathrm{d}A$ 、方向$\mathrm{d}\omega$上接收的Radiant Flux</p>
-<p>Radiance是在Irradiance上增加了方向性</p>
-<p>可以根据以上这点，用一个式子将这两个量联系起来<br>
-$$ \mathrm{d}E(p,\omega)=L_i(p,\omega)cos\theta\mathrm{d}\omega $$<br>
-面积$\mathrm{d}A$收到的irradiance，等于某个方向上的radiance（$L_i(p,\omega)$）乘以照射到面积上的能量（$cos\theta\mathrm{d}\omega$）</p>
-<p>整理一下（两边积分）<br>
-$$ E(\mathrm{p})=\int_{H^2}L_i(p,\omega)cos\theta\mathrm{d}\omega $$<br>
-就是每一个可能的方向（立体角）上，收到的能量求和<br>
-<img src="%E7%90%86%E8%A7%A3radiance.png" srcset="/img/loading.gif" alt=""></p>
+<p>渲染方程是一个积分方程，而且是高维积分，可以一直展开（递归）</p>
+<p>因为可以递归，所以可能出现跳不出递归的情况（两面镜子对着看，无限反弹233）</p>
+<p>渲染方程无法用牛顿莱布尼兹公式来计算积分，因为我们不知道BRDF的解析式，也就不知道被积函数的解析式</p>
 <h2 id="参考">参考</h2>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/139468429">辐射度量学 - 知乎</a><br>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function">Bidirectional reflectance distribution function - Wikipedia</a><br>
 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744?p=15">GAMES101-现代计算机图形学入门-闫令琪</a><br>
-<a target="_blank" rel="noopener" href="https://www.udemy.com/course/dcnzsbff">硬核光线追踪开发—完全解析</a></p>
+<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/350381772">从零开始学图形学：写一个光线追踪渲染器（一）——渲染方程与BxDF</a><br>
+<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/52497510">渲染方程Rendering equation</a></p>
 
             </div>
             <hr>
@@ -346,18 +328,12 @@ $$ E(\mathrm{p})=\int_{H^2}L_i(p,\omega)cos\theta\mathrm{d}\omega $$<br>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/02/27/%E5%9B%BE%E5%BD%A2-%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">[图形]渲染方程</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/01/27/%E5%9B%BE%E5%BD%A2-%E6%9D%90%E8%B4%A8/">
-                        <span class="hidden-mobile">[图形]材质</span>
+                      <a href="/2021/02/26/%E5%9B%BE%E5%BD%A2-%E8%BE%90%E5%B0%84%E5%BA%A6%E9%87%8F%E5%AD%A6/">
+                        <span class="hidden-mobile">[图形]辐射度量学</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
