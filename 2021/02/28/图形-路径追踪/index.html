@@ -1,0 +1,610 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Store some articles.">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  <title>[图形]路径追踪 - ksgfk&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/idea.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>ksgfk's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="[图形]路径追踪">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-02-28 10:28" pubdate>
+        2021年2月28日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      33
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">[图形]路径追踪</h1>
+            
+            <div class="markdown-body">
+              <h1>Probabilities</h1>
+<p>$X$：随机变量，可以取各种不同的值<br>
+$p(x)$：随机变量的概率<br>
+例如：骰子有六个面，可能的取值，也就是$X$可以取1、2、3、4、5、6<br>
+那么$p(1)=p(2)=p(3)=p(4)=p(5)=p(6)=\frac{1}{6}$<br>
+很容易可以知道<br>
+$$\sum\limits_{i=1}^n p_i=1$$<br>
+所有概率叠加起来结果是1</p>
+<p>期望：不断取随机变量并求平均（超简单的理解<br>
+$$E[X]=\sum\limits_{i=1}^n x_i p_i$$<br>
+$x_i$：所有随机变量能取得值<br>
+$p_i$：取到某个随机变量的概率<br>
+还是拿骰子举例，它可以取1、2、3、4、5、6，它取到每个值的概率是$\frac{1}{6}$<br>
+所以期望是<br>
+$$<br>
+\begin{split}<br>
+E[x]&amp;=\sum\limits_{i=1}^n \frac{i}{6}<br>
+&amp;=\frac{1+2+3+4+5+6}{6}<br>
+&amp;=3.5<br>
+\end{split}<br>
+$$</p>
+<p>现在引申到连续型随机变量上，概率会有函数，叫做概率密度函数（Probability Density Function），是一个描述这个随机变量的输出值，在某个确定的取值点附近的可能性的函数<br>
+<img src="%E6%A6%82%E7%8E%87%E5%AF%86%E5%BA%A6%E5%87%BD%E6%95%B0.png" srcset="/img/loading.gif" alt=""><br>
+概率密度也满足所有可能的取值的和为1<br>
+$$\int p(x)\mathrm{d}x=1$$<br>
+相应的，它的期望也可以很容易知道<br>
+$$E[X]=\int xp(x)\mathrm{d}x$$<br>
+现在，如果随机变量也是一个函数$f(x)$，如何求期望也没有变化<br>
+$$E[f(x)]=\int f(x)p(x)\mathrm{d}x$$</p>
+<h1>Monte Carlo Integration</h1>
+<p>严格数学推导（完全不懂）：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/146144853">蒙特卡洛积分</a></p>
+<blockquote>
+<p>The Monte Carlo method is a numerical method of solving mathematical problems by random sampling (or by the simulation of random variables).<br>
+蒙特卡洛法是一类通过随机采样来求解问题的算法的统称，要求解的问题是某随机事件的概率或某随机变量的期望。通过随机抽样的方法，以随机事件出现的频率估计其概率，并将其作为问题的解。</p>
+</blockquote>
+<p>给任何一个函数，我想算它从a到b的定积分，一般我们会求出它的不定积分，再带入上下限减一下就求出来了。<br>
+但是现在这个函数比较复杂，求不出不定积分。而我们只想要最后结果，可以用蒙特卡洛法。<br>
+说白了，蒙特卡洛法就是随机n个自变量，带入解析式求出n个解，当n足够大时，把所有结果平均一下，就是最后的解<br>
+$$F_n(x)=\frac{1}{n}\sum\limits_{k=1}^n\frac{f(x_k)}{pdf(x_k)}$$<br>
+$F_n(x)$：要求解的函数<br>
+$f(x)$：被积函数<br>
+$pdf(x)$：x取值的随机分布<br>
+不同的随机分布会影响计算速度和结果</p>
+<p>（关于为啥它是对的，这篇基本上能解释了<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/260196506">https://zhuanlan.zhihu.com/p/260196506</a>）</p>
+<h1>Path Tracing</h1>
+<h2 id="Whitted-style缺陷">Whitted-style缺陷</h2>
+<p>经典光线追踪算法（Whitted-style）缺陷</p>
+<ul>
+<li>不是在求解渲染方程，没有使用BRDF而是基于简单的反射折射，无法保证正确性</li>
+<li>当光源面积较小时，从相机发射射线到达光源的概率也变小，图像会有大量噪点</li>
+</ul>
+<p>现在我们有了基于物理推导出来的渲染方程，解出方程就是正确的渲染。<br>
+我们知道渲染方程是积分方程，而且我们只要最后的值，可以用蒙特卡洛法</p>
+<h2 id="改写渲染方程">改写渲染方程</h2>
+<p>复习一下渲染方程<br>
+$$ L_o(p,\omega_o)=L_e(p,\omega_o)+\int_{\Omega^+} f_r(p,\omega_i\to\omega_o)L_i(p,\omega_i)(n\cdot\omega_i)\mathrm{d}\omega_i $$<br>
+渲染方程看似复杂，其实就是在半球上，不同方向上的积分<br>
+根据蒙特卡洛法，在半球不同方向上采样，也就是说随机选个方向（随机变量）。我们还需要对应的被积函数和pdf</p>
+<p>很容易得出被积函数$f(x)$就是$f_r(p,\omega_i\to\omega_o)L_i(p,\omega_i)(n\cdot\omega_i)$<br>
+$pdf(x)$涉及到如何对积分域采样，在这里就是如何对半球采样。最简单的采样法就是均匀采样$pdf(\omega_i)=\frac{1}{2\pi}$</p>
+<p>改写渲染方程<br>
+$$ L_o(p,\omega_o)\approx\frac{1}{n}\sum\limits_{i=1}^N\frac{f_r(p,\omega_i\to\omega_o)L_i(p,\omega_i)(n\cdot\omega_i)}{pdf(\omega_i)} $$<br>
+现在这个算法已经可以算出出射的radiance是多少了</p>
+<p>可以写出直接光照伪代码</p>
+<figure class="highlight awk"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs awk">shade(p, wo) <span class="hljs-regexp">//</span>任意一个着色点p，出射方向是wo<br>  按照pdf随机往半球各个方向wi生成N个向量<br>  Lo=<span class="hljs-number">0</span><br>  foreach wi<br>    ray r(p, wi) <span class="hljs-regexp">//</span>从p点往wi发射方向连一条光线<br>    <span class="hljs-keyword">if</span> r 射中了光源<br>      Lo += (<span class="hljs-number">1</span> <span class="hljs-regexp">/ N) * L_i * f_r * cos /</span> pdf(wi) <span class="hljs-regexp">//</span>L_i是光源辐射出的radiance，f_r是BRDF<br>  return Lo<br></code></pre></div></td></tr></table></figure>
+<p>再考虑间接光，其实间接光就是其他物体反射光源的光，也是radiance<br>
+<img src="%E9%97%B4%E6%8E%A5%E5%85%89%E7%85%A7.png" srcset="/img/loading.gif" alt=""><br>
+就好像我们在P点算Q点的直接光照<br>
+在伪代码里加上间接光</p>
+<figure class="highlight awk"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs awk">shade(p, wo) <span class="hljs-regexp">//</span>任意一个着色点p，出射方向是wo<br>  按照pdf随机往半球各个方向wi生成N个向量<br>  Lo=<span class="hljs-number">0</span><br>  foreach wi<br>    ray r(p, wi) <span class="hljs-regexp">//</span>从p点往wi发射方向连一条光线<br>    <span class="hljs-keyword">if</span> r 射中了光源<br>      Lo += (<span class="hljs-number">1</span> <span class="hljs-regexp">/ N) * L_i * f_r * cos /</span> pdf(wi) <span class="hljs-regexp">//</span>L_i是光源辐射出的radiance，f_r是BRDF<br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> r 在q点射中了物体<br>      Lo += (<span class="hljs-number">1</span> <span class="hljs-regexp">/ N) * shade(q, -wi) * f_r * cos /</span> pdf(wi) <span class="hljs-regexp">//</span>-wi的原因是，我们从p点往外选了一个方向，对于q点来说是负方向<br>  return Lo<br></code></pre></div></td></tr></table></figure>
+<p>全局光照get✔</p>
+<h2 id="路径追踪算法">路径追踪算法</h2>
+<p>这个算法还有问题吗？<br>
+递归生成光线的数量会指数上升，1-&gt;100-&gt;10000-&gt;…基本不可能计算出来</p>
+<p>我们可以只生成一条光线（233）</p>
+<figure class="highlight vim"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs vim">shade(<span class="hljs-keyword">p</span>, wo) //任意一个着色点<span class="hljs-keyword">p</span>，出射方向是wo<br>  按照pdf随机往半球各个方向<span class="hljs-keyword">wi</span>生成<span class="hljs-number">1</span>个向量<br>  Lo = <span class="hljs-number">0</span><br>  ray r(<span class="hljs-keyword">p</span>, <span class="hljs-keyword">wi</span>) //从<span class="hljs-keyword">p</span>点往<span class="hljs-keyword">wi</span>发射方向连一条光线<br>  <span class="hljs-keyword">if</span> r 射中了光源<br>    Lo += L_i * f_r * <span class="hljs-built_in">cos</span> / pdf(<span class="hljs-keyword">wi</span>) //L_i是光源辐射出的radiance，f_r是BRDF<br>  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> r 在q点射中了物体<br>    Lo += shade(q, -<span class="hljs-keyword">wi</span>) * f_r * <span class="hljs-built_in">cos</span> / pdf(<span class="hljs-keyword">wi</span>) //-<span class="hljs-keyword">wi</span>的原因是，我们从<span class="hljs-keyword">p</span>点往外选了一个方向，对于q点来说是负方向<br>  <span class="hljs-keyword">return</span> Lo<br></code></pre></div></td></tr></table></figure>
+<p>只生成一条光线，连结视点和光源的路径的算法，就叫做路径追踪</p>
+<p>但是只生成一条光线，噪声很大，我们可以生成多条路径，再把结果叠加求平均</p>
+<h2 id="光线生成算法">光线生成算法</h2>
+<p><img src="%E8%B7%AF%E5%BE%84%E8%BF%BD%E8%B8%AA.png" srcset="/img/loading.gif" alt=""><br>
+我们要对所有像素都发射一条光线</p>
+<figure class="highlight stata"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs stata">ray_gen(camPos, pixel)<br>  像素内均匀地在<span class="hljs-keyword">N</span>个不同位置取样<span class="hljs-keyword">sample</span><br>  pixel_radiance = 0<br>  <span class="hljs-keyword">foreach</span> <span class="hljs-keyword">sample</span> <span class="hljs-keyword">in</span> pixel<br>    ray <span class="hljs-built_in">r</span>(camPos, cam_to_sample) <span class="hljs-comment">//从摄像机位置连一条光线到取样地位置</span><br>    <span class="hljs-keyword">if</span> r在p点射中了物体<br>      pixel_radiance += 1 / <span class="hljs-keyword">N</span> * shade(p, sample_to_cam) <span class="hljs-comment">//出射方向是采样点到摄像机</span><br>  <span class="hljs-keyword">return</span> pixel_radiance<br></code></pre></div></td></tr></table></figure>
+<h2 id="Russian-Roulette">Russian Roulette</h2>
+<p>现在这个算法还有问题吗？</p>
+<p>生成光线路径的shade函数是递归函数，递归需要终止条件，否则会无限制递归下去。现实中的光线会无限制递归，但是计算机不行（爆栈警告）。但是简单地终止递归会造成能量损失，结果不准确。<br>
+为了解决这个问题，引入俄罗斯轮盘赌，在一定条件下终止递归</p>
+<p>提前定义一个概率p，以这个概率向某个方向发射光线，再把返回地结果除以p。在1-p概率时，返回0<br>
+$$E=p * (\frac{Lo}{p}) + (1 - p) * 0 = Lo$$<br>
+我们仍然可以期望，最后结果是Lo<br>
+离散型随机变量的期望是概率乘以值，再把所有加起来。<br>
+以概率p得到的结果是$\frac{Lo}{p}$<br>
+以概率$1-p$得到的结果是$0$<br>
+加起来结果是正确的，只是有时候有噪音</p>
+<p>现在在算法里加入RR</p>
+<figure class="highlight vim"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs vim">shade(<span class="hljs-keyword">p</span>, wo)<br>  选择一个概率P_RR，范围[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]<br>  随机一个变量ksi，范围[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]<br>  <span class="hljs-keyword">if</span>(ksi &gt; P_RR) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span><br><br>  按照pdf随机往半球各个方向<span class="hljs-keyword">wi</span>生成<span class="hljs-number">1</span>个向量<br>  Lo = <span class="hljs-number">0</span><br>  ray r(<span class="hljs-keyword">p</span>, <span class="hljs-keyword">wi</span>)<br>  <span class="hljs-keyword">if</span> r 射中了光源<br>    Lo += L_i * f_r * <span class="hljs-built_in">cos</span> / pdf(<span class="hljs-keyword">wi</span>) / P_RR<br>  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> r 在q点射中了物体<br>    Lo += shade(q, -<span class="hljs-keyword">wi</span>) * f_r * <span class="hljs-built_in">cos</span> / pdf(<span class="hljs-keyword">wi</span>) / P_RR<br>  <span class="hljs-keyword">return</span> Lo<br></code></pre></div></td></tr></table></figure>
+<p>至此，我们推出了正确的路径追踪算法<br>
+只不过这个算法效率不是很高，因为想要最终低噪点的图，需要大量采样<br>
+因为生成光线的方向是随机的，能不能打中光源看运气</p>
+<h2 id="在光源上采样">在光源上采样</h2>
+<p>蒙特卡洛法并没有规定只能用哪种pdf，如果能直接往光源上采样，那所有光线都不会造成浪费<br>
+<img src="%E5%9C%A8%E5%85%89%E6%BA%90%E4%B8%8A%E9%87%87%E6%A0%B7.png" srcset="/img/loading.gif" alt=""><br>
+我们想在光源上采样，而光源就是一个2d的图形，可以很容易知道$\int pdf\mathrm{d}A=1$，$pdf=\frac{1}{A}$</p>
+<p>现在我们采样是在光源面积上采样，但是渲染方程不是定义在光源上，而是定义在立体角上（就那个半球）。蒙特卡洛积分又要求只能在积分域上采样，这样就不能用了</p>
+<p>我们得把渲染方程写成在光源上的积分</p>
+<p>现在我们需要知道$\mathrm{d}\omega$和$\mathrm{d}A$的关系</p>
+<p>复习一下立体角定义：球面上的投影面积与半径的平方之比。也可以理解成把任意一个面积投影到单位球的表面上对应的面积，这个投影的面积就是立体角</p>
+<p>所以只要把光源的面积投影到着色点单位圆上的面积，就获得了他们的关系<br>
+$$\mathrm{d}\omega=\frac{\mathrm{d}Acos \theta^{‘}}{\left|\left|x^{’}-x\right|\right|^2}$$<br>
+本质还是面积除以距离平方</p>
+<p>重写渲染方程<br>
+$$<br>
+\begin{split}<br>
+L_o(p,\omega_o)&amp;=L_e(p,\omega_o)+\int_{\Omega^+} f_r(p,\omega_i\to\omega_o)L_i(p,\omega_i)cos\theta\mathrm{d}\omega_i\newline<br>
+&amp;=L_e(p,\omega_o)+\int_{A} f_r(p,\omega_i\to\omega_o)L_i(p,\omega_i)\frac{cos\theta cos\theta^{‘}}{\left|\left|x^{’}-x\right|\right|^2}\mathrm{d}A<br>
+\end{split}<br>
+$$</p>
+<p>现在应用蒙特卡洛法<br>
+被积函数：方程积分号里所有内容<br>
+pdf：$\frac{1}{A}$</p>
+<p>光源对着色点的贡献可以拆成两部分</p>
+<ul>
+<li>直接光的贡献（不需要RR）</li>
+<li>其他物体反射的光（需要RR）</li>
+</ul>
+<figure class="highlight 1c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs 1c">shade(p, wo)<br>  <span class="hljs-comment">//直接光对着色点地贡献，pdf_light=1/A</span><br>  从p<br>  L_dir = L_i * f_r * <span class="hljs-built_in">cos</span> * <span class="hljs-built_in">cos</span>&#x27; / | x&#x27; - p <span class="hljs-string">|^2 / pdf_light</span><br><br>  <span class="hljs-comment">//间接光</span><br>  L_indir = <span class="hljs-number">0</span><br>  RR决定是否要发射射线，不发射就返回L_indir<br>  生成方向wi，pdf_hemi = <span class="hljs-number">1</span> / <span class="hljs-number">2</span>pi<br>  ray r(p, wi)<br>  if r在q打中不是发光物体<br>    L_indir = shade(q, -wi) * f_r * <span class="hljs-built_in">cos</span> / pdf_hemi /P_RR<br>  return L_dir + L_indir<br></code></pre></div></td></tr></table></figure>
+<p>最后最后一个小问题，如果物体和光源之间有遮挡怎么办<br>
+<img src="%E9%81%AE%E6%8C%A1.png" srcset="/img/loading.gif" alt=""><br>
+从点p到x’发射一条射线，检查下有没有其他物体<br>
+如果被挡了就返回0，没挡才计算</p>
+<h1>参考</h1>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/138317358">光影之美：路径追踪算法初探</a><br>
+<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/110076660">蒙特卡洛路径追踪（Monte Carlo Pathing Tracing）(上篇)</a><br>
+<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/110130205">蒙特卡洛路径追踪（Monte Carlo Pathing Tracing）(下篇)</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">图形学</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning"><a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" srcset="/img/loading.gif" /></a><br />除非特殊说明，否则一律采用<a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/02/27/%E5%9B%BE%E5%BD%A2-%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B/">
+                        <span class="hidden-mobile">[图形]渲染方程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
