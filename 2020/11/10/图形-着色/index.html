@@ -1,0 +1,841 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="图形学基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[图形]着色">
+<meta property="og:url" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/index.html">
+<meta property="og:site_name" content="ksgfk&#39;s blog">
+<meta property="og:description" content="图形学基础">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/Blinn-Phong%E5%8F%8D%E5%B0%84%E6%A8%A1%E5%9E%8B.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E5%AE%9A%E4%B9%89.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E6%BC%AB%E5%8F%8D%E5%B0%84.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E5%85%A5%E5%B0%84%E8%A7%92%E5%BD%B1%E5%93%8D.jpg">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E5%85%89%E7%BA%BF%E9%87%8F%E5%BD%B1%E5%93%8D.jpg">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E6%BC%AB%E5%8F%8D%E5%B0%84%E5%85%AC%E5%BC%8F.jpg">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E9%AB%98%E5%85%89.jpg">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/Blinn-Phong%E6%A8%A1%E5%9E%8B.jpg">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E6%8C%87%E6%95%B0p%E5%8A%A0%E9%80%9F%E8%A1%B0%E5%87%8F.jpg">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E7%8E%AF%E5%A2%83%E5%85%89.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E4%B8%8D%E5%90%8C%E7%9D%80%E8%89%B2%E9%A2%91%E7%8E%87%E7%9A%84%E7%BB%93%E6%9E%9C.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E7%9D%80%E8%89%B2%E9%A2%91%E7%8E%87%E5%8C%BA%E5%88%AB.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E7%BA%B9%E7%90%86%E5%9D%90%E6%A0%87.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87%E5%80%BC%E8%AE%A1%E7%AE%97.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E7%9C%9F%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87%E5%85%AC%E5%BC%8F.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E5%8F%8C%E7%BA%BF%E6%80%A7%E6%8F%92%E5%80%BC.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E6%9D%90%E8%B4%A8%E8%BF%87%E5%A4%A7.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/mipmap.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/mipmap%E7%94%A8%E6%B3%95.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF.png">
+<meta property="article:published_time" content="2020-11-10T00:59:05.000Z">
+<meta property="article:modified_time" content="2021-03-28T02:08:08.844Z">
+<meta property="article:author" content="ksgfk">
+<meta property="article:tag" content="图形学">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ksgfk.github.io/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/Blinn-Phong%E5%8F%8D%E5%B0%84%E6%A8%A1%E5%9E%8B.png">
+  
+  
+  
+  <title>[图形]着色 - ksgfk&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ksgfk&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="[图形]着色"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-11-10 08:59" pubdate>
+          2020年11月10日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          3.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          29 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">[图形]着色</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>在将三角形光栅化后，可以把所有像素画在了屏幕上了，那么每个像素应该是什么颜色，就是着色要解决的问题。</p>
+<p>词典里对着色的定义是：引入明暗或颜色变化的过程。</p>
+<p>图形学上的着色也差不多，只是换成了将材质应用到物体上的过程。不同材质与光线会有不同的相互作用的方法。</p>
+<h2 id="Blinn-Phong-Reflectance-Model">Blinn-Phong Reflectance Model</h2>
+<p><img src="Blinn-Phong%E5%8F%8D%E5%B0%84%E6%A8%A1%E5%9E%8B.png" srcset="/img/loading.gif" lazyload alt=""><br>
+现实中，物体可以被观察，是因为人眼接收了从物体来的光线。一般这些光线可以分为三种：</p>
+<ul>
+<li>Specular highlight 高光</li>
+<li>Diffuse reflection 漫反射</li>
+<li>Ambient lighting 环境光<br>
+我们把这三个光线结果叠加起来，就是Blinn-Phong反射模型的结果。</li>
+</ul>
+<blockquote>
+<p>这里考虑的光照，都是考虑某<strong>一个</strong>点的光照结果，这个点叫做 <strong>Shading point</strong> 着色点。对于一个着色点，它一定在物体表面。此外，我们认为在物体表面局部很小的区域，它是个平面。<br>
+<img src="%E5%AE%9A%E4%B9%89.png" srcset="/img/loading.gif" lazyload alt=""><br>
+关于着色点的一些定义：</p>
+<ul>
+<li>n向量表示这个平面的法线方向（Surface normal）</li>
+<li>v向量表示这个着色点到摄像机的方向（Viewer direction）</li>
+<li>l向量表示这个着色点到光源的方向（Light direction）</li>
+<li>以上向量都是单位向量</li>
+<li>还有着色点本身的属性，它和物体表面有关，比如颜色、光滑度</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>此外，着色是<strong>局部性</strong>的，我们只考虑着色点自己的属性，不考虑这个点和其他物体联动的情况，例如阴影。</p>
+</blockquote>
+<h3 id="Diffuse-Reflection-漫反射">Diffuse Reflection 漫反射</h3>
+<p>当光线射到一个点上后，光线会被均匀的反射到各个不同的方向。<br>
+<img src="%E6%BC%AB%E5%8F%8D%E5%B0%84.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="%E5%85%A5%E5%B0%84%E8%A7%92%E5%BD%B1%E5%93%8D.jpg" srcset="/img/loading.gif" lazyload alt=""><br>
+但是不同的入射角度，结果的明暗是不同的。相同的光线射入同一个点，为什么入射角度可以影响结果？</p>
+<p>不同的角度，能反射的入射光线量不同。更科学的解释是，相同表面积，接收到的能量不同，夹角越偏接收能量越少，反射的能量越少。</p>
+<blockquote>
+<p>Lambert余弦定理（Lambert’s cosine law）：cosθ=l·n。着色点接收到的能量，和 入射光线与着色点法线方向的夹角的余弦值成正比。</p>
+</blockquote>
+<p><img src="%E5%85%89%E7%BA%BF%E9%87%8F%E5%BD%B1%E5%93%8D.jpg" srcset="/img/loading.gif" lazyload alt=""><br>
+光线传播速度固定，光线总能量固定，假设n个以光源为球心的球壳将光源包围起来，那么任意时刻，任意一圈球壳代表的光线总能量不变，而球壳表面积在增大，则单位面积的光线能量减少。所以假设光源的光线强度是I，那么任意位置的光线强度就是I/r²<br>
+<img src="%E6%BC%AB%E5%8F%8D%E5%B0%84%E5%85%AC%E5%BC%8F.jpg" srcset="/img/loading.gif" lazyload alt=""><br>
+所以可以得到漫反射公式：到达的光线能量乘以接收的能量。需要注意的是，接收的能量，如果计算结果是负数，说明光线从内部过来的，所以直接将它置0。</p>
+<p>众所周知，物体能呈现不同颜色是因为能吸收那种颜色，反射其他颜色，不同材质的反射率不同，所以定义一个漫反射系数kd，范围是0到1，1表示完全不吸收光线，0表示吸收了所有光线。</p>
+<p>这个漫反射着色叫做Lambertian (Diffuse) Shading，从公式中可以看出，着色结果和摄像机方向无关，因此从任意角度观察物体，漫反射的结果都应该是一样的。</p>
+<h3 id="Specular-Highlight-高光">Specular Highlight 高光</h3>
+<p><img src="%E9%AB%98%E5%85%89.jpg" srcset="/img/loading.gif" lazyload alt=""><br>
+假设有个无限光滑的平面，那么我们很容易求出入射光线镜面反射的角度。如果这个平面不是那么光滑，那么我们也可以知道光线沿着镜面反射的散布。那么，当观察角度和镜面反射接近的时候，我们就能看到高光，也就是v和R接近。<br>
+<img src="Blinn-Phong%E6%A8%A1%E5%9E%8B.jpg" srcset="/img/loading.gif" lazyload alt=""><br>
+Blinn-Phong模型使用了一个很聪明的办法，求出l和v的半程向量h（就是四边形法则，中间那个向量）,再将h归一化，所以能不能看到高光，只要看n和h是不是接近（也就是n点乘h结果是不是接近1）。<br>
+<img src="%E6%8C%87%E6%95%B0p%E5%8A%A0%E9%80%9F%E8%A1%B0%E5%87%8F.jpg" srcset="/img/loading.gif" lazyload alt=""><br>
+还有需要注意的一点，计算n和h夹角时有个指数p，事实上如果p等于1，就能看到一个超大的高光点，这不符合直觉，所以增加一个指数，让高光快速衰减。</p>
+<p>当然，我们也可以算v和R（就是反射）的夹角，这样就变成了Phong模型。其实这两个模型只是计算起来容易程度的关系，本质没有啥变化。</p>
+<p>我们会发现这里，Blinn-Phong模型并没有考虑高光点的能量吸收，因为这个模型其实是从经验中总结的，因此将它简化掉了，这里保证了能不能看到高光。</p>
+<h3 id="Ambient-Lighting-环境光">Ambient Lighting 环境光</h3>
+<p><img src="%E7%8E%AF%E5%A2%83%E5%85%89.png" srcset="/img/loading.gif" lazyload alt=""><br>
+想象一下，场景中只有一个光源，在场景中放个球，按理来说，球的背面无法接收任何光线，背面应该是全黑的，但是实际生活中，我们还是能看清背面的。其实这是环境光在起作用。环境光从四面八方射到球的背面，这是个非常复杂的过程。为了简化这个过程，我们假设，任何一个点接受的环境光都是相同的，叫做Ia，ka是环境光的颜色。环境光是个常数，和法线啊观察角都无关，它只是用来保证没有地方是完全黑的。</p>
+<p>这里的环境光是假的，是特技，精确计算环境光需要全局光照（Global Illumination）</p>
+<h2 id="Shading-Frequencies-着色频率">Shading Frequencies 着色频率</h2>
+<p><img src="%E4%B8%8D%E5%90%8C%E7%9D%80%E8%89%B2%E9%A2%91%E7%8E%87%E7%9A%84%E7%BB%93%E6%9E%9C.png" srcset="/img/loading.gif" lazyload alt=""><br>
+这三个球都是一模一样的模型，一模一样的光照模型，只是它们的着色方法不同</p>
+<h3 id="Flat-shading">Flat shading</h3>
+<p>对三角形求面的法线（三角形两条边叉乘结果就是法线），算出面的着色结果，并将结果应用整个面上。</p>
+<h3 id="Gouraud-shading">Gouraud shading</h3>
+<p>求每个顶点的法线，知道了每个点的颜色，就能对面的颜色进行插值。</p>
+<p>但是如何算顶点的法线？如果物体是个球，我们确实可以很容易算出每个点的法线就是球心连到这个点的方向。但是大部分情况物体都不是球。实际上就算不是球也很简单，直接对包含这个顶点的面的法线求个平均，就是顶点的法线。（其实这也是个近似，万一相邻有个超大和超小的面，那求平均的时候加权一下，也许会更好）</p>
+<h3 id="Phong-shading">Phong shading</h3>
+<p>Gouraud shading可以算出每个顶点的法线，在三角形中也可以插值出任意一个点的法线方向，那么就可以对每个像素应用着色。<br>
+<img src="%E7%9D%80%E8%89%B2%E9%A2%91%E7%8E%87%E5%8C%BA%E5%88%AB.png" srcset="/img/loading.gif" lazyload alt=""><br>
+其实这些着色模型各有优势，并没有谁比谁好。</p>
+<h2 id="Texture-纹理">Texture 纹理</h2>
+<p>在现代GPU中，纹理是一块保存在内存中，可以范围查询的数据，因此纹理不仅仅是图片，可以称为纹理的太多了。</p>
+<ul>
+<li>环境光照（Environment Map）：把来自任何方向上的光照（直接光，间接光）记录在纹理上。假设光源无限远
+<ul>
+<li>Spherical Map：将环境光照记录在球上，并且可以展开。但是展开的时候有点小问题，上下两边的纹理是会被压缩的</li>
+<li>Cube Map：把光照信息存在立方体表面上，就解决了球面的问题。正方体六个面保存六张图片</li>
+</ul>
+</li>
+<li>凹凸/法线贴图（Bump/Normal Map）：定义纹理上的点的相对高度，高度变化-&gt;法线变化-&gt;着色结果变化</li>
+<li>位移贴图（Displacement Map）：真的移动顶点位置，法线贴图是假的，顶点没有移动，在模型边缘会露馅</li>
+<li>3D Procedural Noise：定义空间中任意一点的值</li>
+<li>Ambient Occlusion texture map（环境光遮蔽贴图）</li>
+</ul>
+<h3 id="Texture-Mapping-纹理映射">Texture Mapping 纹理映射</h3>
+<p>现实生活中，一个物体不同地方的漫反射系数都是不同的，我们希望模型的不同位置都能自定义不同的属性。</p>
+<blockquote>
+<p>一般纹理是一张图片</p>
+</blockquote>
+<blockquote>
+<p>任何一个三维物体表面都是二维的</p>
+</blockquote>
+<p>所以我们可以把任意一个三维物体的表面展开成一个二维平面。同样的，一张纹理我们也可以把它蒙到任意一个三维物体上。那么表面和纹理的坐标之间就有一种一一对应的映射关系。</p>
+<p><img src="%E7%BA%B9%E7%90%86%E5%9D%90%E6%A0%87.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<s>这图有点阴间</s></p>
+<blockquote>
+<p>在纹理上，我们也会定义一个坐标系，叫做纹理坐标（Texture Coordinates），通常用u、v来表示，uv的范围是[0,1]</p>
+</blockquote>
+<p>有些纹理是可以重用的，多个纹理拼接起来，它的左右或上下如果可以无缝衔接，这样的纹理叫做Tilable texture</p>
+<h4 id="Barycentric-Coordinates-重心坐标">Barycentric Coordinates 重心坐标</h4>
+<p>为了对三角形内的属性（什么属性都可以，纹理坐标啊、颜色啊、法线啊）进行插值，引入重心坐标的概念。<br>
+<img src="%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87.png" srcset="/img/loading.gif" lazyload alt=""><br>
+A、B、C表示三角形三个顶点坐标，分别乘以一个系数，而这三个系数满足<strong>和是1</strong>且三个系数都是<strong>非负数</strong>的时候，这三个系数组成的二维坐标（去掉z）可以表示一个坐标。<br>
+<img src="%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87%E5%80%BC%E8%AE%A1%E7%AE%97.png" srcset="/img/loading.gif" lazyload alt=""><br>
+坐标系数α等于与A顶点不相邻三角形Aa除以三角形总面积。<br>
+<img src="%E7%9C%9F%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87.png" srcset="/img/loading.gif" lazyload alt=""><br>
+如果将三角形面积按以上方法分成3等份，那么分割后的三角形交点就是重心坐标。<br>
+<img src="%E9%87%8D%E5%BF%83%E5%9D%90%E6%A0%87%E5%85%AC%E5%BC%8F.png" srcset="/img/loading.gif" lazyload alt=""><br>
+最终可以从面积计算推出重心坐标公式（怎么推的…</p>
+<p>重心坐标有个小问题，在投影变换下不能保证投影后的重心坐标不变。因为投影后顶点坐标发生变化。如果投影完了再算一遍可能会法线重心坐标改变了。</p>
+<p>使用重心坐标将三角形内的任意一个点插值出来后，就可以去纹理上采样坐标点对于的颜色是多少，然后把颜色值当作漫反射系数，就相当于把纹理贴在了物体上。</p>
+<h3 id="Mipmap">Mipmap</h3>
+<p>有时候纹理分辨率太小了，而查询的时候又只是简单的四舍五入找最近的点，呈现出来的画面就会出现一大堆锯齿。如果我们想让纹理平滑一些，需要引入双线性插值（Bilinear Interpolation）。<br>
+<img src="%E5%8F%8C%E7%BA%BF%E6%80%A7%E6%8F%92%E5%80%BC.png" srcset="/img/loading.gif" lazyload alt=""><br>
+我们去找它临近的4个点，先对上下两行水平方向的像素进行插值，可以得到两个结果，再对这两个结果进行插值，就可以得到这个像素的值了。这个值综合考虑了周围像素的值。还有效果更好的插值方法Bicubic，这里就不细嗦了。<br>
+<img src="%E6%9D%90%E8%B4%A8%E8%BF%87%E5%A4%A7.png" srcset="/img/loading.gif" lazyload alt=""><br>
+这是材质过大时，还按照简单的四舍五入取像素点的方法渲染结果，远处出现了摩尔纹，近处出现了锯齿。图像走样了，因为远处的物体渲染时，每个像素覆盖的材质都会更多，但是如果简单的用一个点代表一块区域，就丢失了很多信息。</p>
+<p>解决方法也简单，采样更多的点就行了。但是会增加开销。</p>
+<p>事实上走样的本质是变化速度过快，采样频率跟不上，超采样就是用更搞得采样频率。但是如果我们不采样，立刻就能知道一块确定区域的像素平均值是多少，岂不是更好。</p>
+<p>为了解决这个问题，引入Mipmap。Mipmap可以快速查询矩形区域的像素值，使用mipmap进行采样叫做三线性插值。<br>
+<img src="mipmap.png" srcset="/img/loading.gif" lazyload alt=""><br>
+（其实就是缩小纹理分辨率，每次缩一半<br>
+第0层是原图，第一层小一半。储存空间增大到4/3，也就是说mipmap占了1/3。<br>
+<img src="mipmap%E7%94%A8%E6%B3%95.png" srcset="/img/loading.gif" lazyload alt=""><br>
+如何使用mipmp？（TODO）<br>
+当将需要查询的区域近似成四边形后，查询哪一层区域约等于一个像素，直接获取那一个像素的结果，就可以立刻得出区域内平均值。</p>
+<p>但是但是但是，如果查询结果在两层中间怎么办？插值。</p>
+<h3 id="Anisotropic-Filtering-各向异性过滤">Anisotropic Filtering 各向异性过滤</h3>
+<p>如果将超采样的结果作为标准，三线性插值的结果其实已经比较准确了，但是在某些情况下，远处的贴图还是糊的（Overblur），因为mipmap只是近似，而且只能近似四边形。各向异性过滤的结果比三线性插值更准确。各向异性过滤会生成Ripmap<br>
+（跳过，看不懂TODO）</p>
+<h2 id="Real-time-Rendering-Pipeline-实时渲染管线">Real-time Rendering Pipeline 实时渲染管线</h2>
+<p>我们现在知道如何光栅化物体，有了着色模型，知道了着色模型怎么用，现在将所有东西都合在一起，就已经可以得出渲染结果了。</p>
+<p>这个从三维模型之类的数据，到得出渲染结果并显示出来的过程，就是渲染管线，这里说的是实时渲染管线（Real-time Rendering Pipeline）<br>
+<img src="%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF.png" srcset="/img/loading.gif" lazyload alt=""><br>
+一套渲染管线基本可以抽象成5个步骤，这些步骤都被集合到了GPU里。</p>
+<ul>
+<li>Vertex Processing 就是顶点阶段，这个阶段会对输入的顶点进行各种矩阵变换。</li>
+<li>Rasterization 是光栅化阶段，这个阶段会产生一系列像素，深度测试也在这个阶段。</li>
+<li>Fragment Processing 是着色阶段，这个阶段能对每个像素颜色进行计算</li>
+</ul>
+<p>事实上Shading可以应用在Vertex和Fragment阶段，并不只有像素阶段才能着色。现代GPU的顶点和像素阶段是可编程的，可以人工编程来控制这两项如何变化，而这个编写出来的程序就叫做Shader（着色器）</p>
+<p>一般来说，Shader是用于GPU的一种硬件语言，Shader程序都会自动应用到所有目标对象上，不用手动遍历所有像素。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%AC%94%E8%AE%B0/" class="category-chain-item">笔记</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%AC%94%E8%AE%B0/GAMES101/" class="category-chain-item">GAMES101</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[图形]着色</div>
+      <div>https://ksgfk.github.io/2020/11/10/图形-着色/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ksgfk</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年11月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/12/04/%E5%9B%BE%E5%BD%A2-%E5%87%A0%E4%BD%95/" title="[图形]几何">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[图形]几何</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/" title="[图形]光栅化">
+                        <span class="hidden-mobile">[图形]光栅化</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      沪ICP备2025108779号-1
+    </a>
+  </span>
+  
+</div>
+
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

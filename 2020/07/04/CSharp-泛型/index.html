@@ -1,0 +1,770 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="稍微深入一点的C#泛型概述">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[C#]泛型">
+<meta property="og:url" content="https://ksgfk.github.io/2020/07/04/CSharp-%E6%B3%9B%E5%9E%8B/index.html">
+<meta property="og:site_name" content="ksgfk&#39;s blog">
+<meta property="og:description" content="稍微深入一点的C#泛型概述">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-04T07:55:14.000Z">
+<meta property="article:modified_time" content="2021-01-26T15:01:58.808Z">
+<meta property="article:author" content="ksgfk">
+<meta property="article:tag" content="C#">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>[C#]泛型 - ksgfk&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ksgfk&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="[C#]泛型"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-07-04 15:55" pubdate>
+          2020年7月4日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          16 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">[C#]泛型</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="概述">概述</h2>
+<p>泛型是一种代码重用的机制。我们知道，面向对象可以重用对象的行为，而泛型是为了重用算法。</p>
+<p>C#的引用类型（class）与值类型（struct）都允许使用泛型，但是枚举类型（enum）不可以。C#还可以定义泛型接口（interface）、泛型方法（静态方法与成员方法都可以）、泛型委托（delegate）。</p>
+<p>使用泛型封装算法的好处：</p>
+<ul>
+<li>源代码保护（不太理解，和C++模板有联系）</li>
+<li>类型安全。非泛型算法，由于类型未知，只能在运行时才会知道类型是否有问题。使用泛型则在编译时就可以将类型问题找出。</li>
+<li>更清晰的代码</li>
+<li>更好的性能。非泛型算法可能会带来装箱与拆箱的损耗，而且可以避免强制类型转换。</li>
+</ul>
+<h2 id="泛型的结构">泛型的结构</h2>
+<h3 id="开放类型与封闭类型">开放类型与封闭类型</h3>
+<p>我们知道，C#的任何一个类型，都有对应类型对象（type object）储存类型的元数据。泛型类型也拥有类型对象，称为开放类型。但是我们不可以构造一个开放类型的实例。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">using</span> System;<br><span class="hljs-keyword">using</span> System.Collections.Generic;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-built_in">string</span>[] args</span>)</span><br>&#123;<br>  Type t = <span class="hljs-keyword">typeof</span>(List&lt;&gt;);<span class="hljs-comment">//List&lt;&gt;是一个开放类型</span><br>  <span class="hljs-built_in">object</span> obj = Activator.CreateInstance(t);<br>  Console.WriteLine(obj);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>程序会在第7行抛出<code>System.ArgumentException</code>异常</p>
+<p>当我们直接打印一个开放类型的完整名称，例如打印<code>System.Collections.Generic.List&lt;&gt;</code>，会得到&quot;System.Collections.Generic.List`1&quot;。末尾的&quot;`1&quot;代表有多少个泛型参数。</p>
+<p>确定了泛型类型的类型称为封闭类型。</p>
+<h3 id="泛型类型内的静态字段">泛型类型内的静态字段</h3>
+<p>泛型类型内部可以定义静态字段、属性。与普通类型的静态字段全局唯一不同，泛型类型内的任何静态字段不会在泛型类型间共享，它们会被独立出来。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Array</span>&lt;<span class="hljs-title">T</span>&gt;<br>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">int</span> Meta;<br>    <span class="hljs-keyword">private</span> T _element;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-built_in">string</span>[] args</span>)</span><br>&#123;<br>    Array&lt;Program&gt;.Meta = <span class="hljs-number">2</span>;<br>    Array&lt;<span class="hljs-built_in">double</span>&gt;.Meta = <span class="hljs-number">3</span>;<br>    Console.WriteLine(Array&lt;Program&gt;.Meta);<br>    Console.WriteLine(Array&lt;<span class="hljs-built_in">double</span>&gt;.Meta);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>控制台会打印2和3，而不是两个3。</p>
+<h3 id="泛型类型的继承">泛型类型的继承</h3>
+<p>泛型类型也是类型，所以能从任何类型派生。继承泛型类型时指定实参，那么相当于定义了新得类型对象，新类型从填入实参后的泛型类型派生。例如<code>Dictionary&lt;K,V&gt;</code>派生自<code>Object</code>，那么<code>Dictionary&lt;int,double&gt;</code>也派生自<code>Object</code>。当<code>StrMap&lt;V&gt;</code>派生自<code>Dictionary&lt;string,V&gt;</code>，那么<code>StrMap&lt;int&gt;</code>也派生自<code>Dictionary&lt;string,int&gt;</code></p>
+<h3 id="使用using简化泛型">使用using简化泛型</h3>
+<p>有时候我们会用一个类来封装泛型</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">IntArray</span> : <span class="hljs-title">List</span>&lt;<span class="hljs-title">int</span>&gt; <br>&#123;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>但C#提供了更好的方式，来为泛型类型重命名</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">using</span> IntArray = System.Collections.Generic.List&lt;<span class="hljs-built_in">int</span>&gt;;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-built_in">string</span>[] args</span>)</span><br>&#123;<br>    <span class="hljs-keyword">var</span> intArr = <span class="hljs-keyword">new</span> IntArray();<br>    intArr.Add(<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>使用using语句来定义一个符号代替泛型</p>
+<h3 id="泛型方法的背后">泛型方法的背后</h3>
+<p>一般来说，当我们调用了一个泛型方法并填入想要的泛型参数，我们希望参数就像C/C++的宏一样，将方法内的泛型类型替换成我们填入的参数。但这会导致，为每一个填入的参数都生成一个对应的方法，让方法数量爆炸，影响性能。当然，C#已经解决了这个问题，C#的运行时CLR（Common Language Runtime）如果发现，填入的参数是引用类型，就只会生成一套完全相同的代码，运行时填入实例，因为引用类型可以看作一个指向堆内存的指针，而指针的大小是固定的，所有指针都可以统一操作。但如果填入的是值类型，CLR才会生成独立的方法，因为每一个值类型的大小都不确定，编译器无法确定要使用的栈空间大小。</p>
+<h2 id="泛型的协变与逆变">泛型的协变与逆变</h2>
+<p>协变与逆变允许将修改类型但泛型参数类型不变</p>
+<ul>
+<li>逆变：泛型参数可以改变为它的派生类型，在泛型参数前填in</li>
+<li>协变：泛型参数可以改变为它的基类，在泛型参数前填out</li>
+</ul>
+<p>只有委托和接口中可以定义协变和逆变</p>
+<h3 id="委托">委托</h3>
+<p>例如标准库中的Func委托</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-built_in">string</span>[] args</span>)</span><br>&#123;<br>    Func&lt;Exception, NullReferenceException&gt; func = <span class="hljs-literal">null</span>;<br>    Func&lt;ArgumentException, Exception&gt; e = func;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这段代码是合法的。</p>
+<p>来看看<code>Func&lt;,&gt;</code>的定义</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">delegate</span> TResult <span class="hljs-title">Func</span>&lt;<span class="hljs-keyword">in</span> <span class="hljs-title">T</span>, <span class="hljs-keyword">out</span> <span class="hljs-title">TResult</span>&gt;(<span class="hljs-params">T arg</span>)</span>;<br></code></pre></td></tr></table></figure>
+<p>说明第一个参数可以逆变，第二个参数可以协变。而ArgumentException派生自Exception，NullReferenceException派生自Exception，因此这段代码是合法的。</p>
+<h3 id="接口">接口</h3>
+<p>与委托类似，<code>IEnumerator&lt;&gt;</code>的定义是</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IEnumerator</span>&lt;<span class="hljs-keyword">in</span> <span class="hljs-title">T</span>&gt; : <span class="hljs-title">IEnumerator</span><br>&#123;<br>  <span class="hljs-comment">//其余代码省略</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>因此<code>IEnumerator&lt;&gt;</code>可以逆变</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-built_in">string</span>[] args</span>)</span><br>&#123;<br>    IEnumerator&lt;Program&gt; e = <span class="hljs-literal">null</span>;<br>    IEnumerator&lt;<span class="hljs-built_in">object</span>&gt; p = e;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="泛型约束">泛型约束</h2>
+<p>有时候，我们希望在泛型方法内调用传入形参的方法</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">INormalProperty</span><br>&#123;<br>  <span class="hljs-built_in">bool</span> IsUnbreakable &#123; <span class="hljs-keyword">get</span>; &#125;<br>  <span class="hljs-built_in">bool</span> IsGod &#123; <span class="hljs-keyword">get</span>; &#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">CanBoom</span>&lt;<span class="hljs-title">T</span>&gt;(<span class="hljs-params">T target, T attacker</span>)</span><br>&#123;<br>  <span class="hljs-keyword">if</span> (target.IsUnbreakable) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  <span class="hljs-keyword">return</span> attacker.IsGod; <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>噢，这段代码是无法通过编译的，因为我们根本不知道T类型有没有IsUnbreakable和IsGod属性！</p>
+<p>但我们可以约束T的类型，使得它可以调用这些属性！</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">CanBoom</span>&lt;<span class="hljs-title">T</span>&gt;(<span class="hljs-params">T target, T attacker</span>) <span class="hljs-keyword">where</span> T : INormalProperty</span><br>&#123;<br>  <span class="hljs-keyword">if</span> (target.IsUnbreakable) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  <span class="hljs-keyword">return</span> attacker.IsGod; <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在上面的例子中，使用where关键字表示：指定泛型类型时，任何传入的类型都必须实现INormalProperty接口。这样，在调用方法时，如果传入参数未实现接口，则无法通过编译。</p>
+<p>事实上，任何可以用泛型来定义的地方，都可以用where来约束。</p>
+<p>泛型约束时，可以使用几个特殊的参数</p>
+<ul>
+<li>new():表示泛型可以支持无参构造</li>
+</ul>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> T <span class="hljs-title">Generate</span>&lt;<span class="hljs-title">T</span>&gt;() <span class="hljs-keyword">where</span> T : <span class="hljs-keyword">new</span>()</span><br>&#123;<br>  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> T();<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>class:表示泛型必须是引用类型</li>
+<li>struct:表示泛型必须是值类型</li>
+<li>unmanaged:表示泛型必须是值类型且不包含任何委托类型</li>
+</ul>
+<p>其中class、struct、unmanaged是互斥的，不能同时出现，new()必须放在所有约束类型的末尾且与struct、unmanaged是互斥的。</p>
+<p>还有几个特殊的类不能用于约束：</p>
+<ul>
+<li>System.Object</li>
+<li>System.Array</li>
+<li>System.Delegate</li>
+<li>System.MulticastDelegate</li>
+<li>System.ValueType</li>
+<li>System.Enum</li>
+<li>System.Void</li>
+</ul>
+<h2 id="一些小细节">一些小细节</h2>
+<h3 id="将泛型变量设为默认值">将泛型变量设为默认值</h3>
+<p>我们有时候会写出这样的代码</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Foo</span>()</span><br>&#123;<br>  <span class="hljs-built_in">object</span> o = <span class="hljs-literal">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这没问题，C#中的变量在使用前不可以只声明不初始化，但是泛型变量这样做可能会出一些问题。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Foo</span>&lt;<span class="hljs-title">T</span>&gt;()</span><br>&#123;<br>  T o = <span class="hljs-literal">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这段代码无法通过编译，因为不知道它是值类型还是引用类型。我们可以用default关键字设置它的默认值，就像接口一样</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Foo</span>&lt;<span class="hljs-title">T</span>&gt;()</span><br>&#123;<br>  T o = <span class="hljs-literal">default</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="泛型间的运算符">泛型间的运算符</h3>
+<h4 id="比较运算符">比较运算符</h4>
+<ul>
+<li>任何泛型变量都可以与null比较，如果泛型是值类型，<code>arg == null</code>永远都会返回false，因为值类型不可能是null</li>
+<li>两个引用类型的泛型变量可以直接用==或!=比较，结果和普通方法是一样的</li>
+<li>两个未知类型的泛型变量不可以用操作符比较。可以约束接口<code>IEquatable&lt;&gt;</code></li>
+</ul>
+<h4 id="其他操作符">其他操作符</h4>
+<ul>
+<li>由于C#的限制，我们没有办法写出能处理任何数据类型的算法，任何操作符都不能用于泛型类型间的运算。C++可以通过重载运算符来成功编译模板函数，但C#尚不支持这样的做法。</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%AC%94%E8%AE%B0/" class="category-chain-item">笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/C/" class="print-no-link">#C#</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[C#]泛型</div>
+      <div>https://ksgfk.github.io/2020/07/04/CSharp-泛型/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ksgfk</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年7月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/07/13/%E5%9B%BE%E5%BD%A2-%E4%BA%8C%E7%BB%B4%E5%8F%98%E6%8D%A2/" title="[图形]二维变换">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[图形]二维变换</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/25/Unity-%E5%8A%A0%E8%BD%BD%E7%AE%A1%E7%90%86/" title="[Unity]加载管理">
+                        <span class="hidden-mobile">[Unity]加载管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      沪ICP备2025108779号-1
+    </a>
+  </span>
+  
+</div>
+
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

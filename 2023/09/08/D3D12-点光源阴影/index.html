@@ -1,0 +1,716 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="TODO… 点光源阴影 概述 shadow map是一项使用非常普遍的技术，这里不再赘述。 点光源阴影，英文omnidirectional shadow maps。由于点光源是向空间中四面八方照射，光线方向的范围是球面，因此很容发现，点光源如果要产生阴影，也需要获取四面八方的shadow map。  learnopengl提到了CubeMap用来做这件事很棒，采样6张shadow map的事也可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="点光源阴影">
+<meta property="og:url" content="https://ksgfk.github.io/2023/09/08/D3D12-%E7%82%B9%E5%85%89%E6%BA%90%E9%98%B4%E5%BD%B1/index.html">
+<meta property="og:site_name" content="ksgfk&#39;s blog">
+<meta property="og:description" content="TODO… 点光源阴影 概述 shadow map是一项使用非常普遍的技术，这里不再赘述。 点光源阴影，英文omnidirectional shadow maps。由于点光源是向空间中四面八方照射，光线方向的范围是球面，因此很容发现，点光源如果要产生阴影，也需要获取四面八方的shadow map。  learnopengl提到了CubeMap用来做这件事很棒，采样6张shadow map的事也可以">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksgfk.github.io/2023/09/08/D3D12-%E7%82%B9%E5%85%89%E6%BA%90%E9%98%B4%E5%BD%B1/point_shadows_diagram.png">
+<meta property="article:published_time" content="2023-09-08T09:19:55.000Z">
+<meta property="article:modified_time" content="2023-10-20T06:09:45.122Z">
+<meta property="article:author" content="ksgfk">
+<meta property="article:tag" content="D3D12">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ksgfk.github.io/2023/09/08/D3D12-%E7%82%B9%E5%85%89%E6%BA%90%E9%98%B4%E5%BD%B1/point_shadows_diagram.png">
+  
+  
+  
+  <title>点光源阴影 - ksgfk&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ksgfk&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="点光源阴影"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-09-08 17:19" pubdate>
+          2023年9月8日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">点光源阴影</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>TODO…</p>
+<h1>点光源阴影</h1>
+<h2 id="概述">概述</h2>
+<p>shadow map是一项使用非常普遍的技术，这里不再赘述。</p>
+<p>点光源阴影，英文omnidirectional shadow maps。由于点光源是向空间中四面八方照射，光线方向的范围是球面，因此很容发现，点光源如果要产生阴影，也需要获取四面八方的shadow map。</p>
+<p><img src="point_shadows_diagram.png" srcset="/img/loading.gif" lazyload alt="这里借用learnopengl的图"></p>
+<p>learnopengl提到了CubeMap用来做这件事很棒，采样6张shadow map的事也可以交给显卡去做！</p>
+<p>这里我们使用DX12实现</p>
+<h2 id="创建CubeMap相关资源">创建CubeMap相关资源</h2>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs C++">Eigen::Vector2i depSize&#123;<span class="hljs-number">512</span>, <span class="hljs-number">512</span>&#125;;<br><span class="hljs-comment">// 一些其他代码...</span><br>D3D12_RESOURCE_DESC depthDesc&#123;&#125;;<br>depthDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;<br>depthDesc.Alignment = <span class="hljs-number">0</span>;<br>depthDesc.Width = depSize.<span class="hljs-built_in">x</span>();<br>depthDesc.Height = depSize.<span class="hljs-built_in">y</span>();<br>depthDesc.DepthOrArraySize = <span class="hljs-number">6</span>;<br>depthDesc.MipLevels = <span class="hljs-number">1</span>;<br>depthDesc.Format = DXGI_FORMAT_R32_TYPELESS;<br>depthDesc.SampleDesc.Count = <span class="hljs-number">1</span>;<br>depthDesc.SampleDesc.Quality = <span class="hljs-number">0</span>;<br>depthDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;<br>depthDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;<br>D3D12_CLEAR_VALUE clearDesc&#123;&#125;;<br>clearDesc.Format = DXGI_FORMAT_D32_FLOAT;<br>clearDesc.DepthStencil.Depth = <span class="hljs-number">1.0f</span>;<br>clearDesc.DepthStencil.Stencil = <span class="hljs-number">0</span>;<br>D3D12MA::ALLOCATION_DESC allocDesc&#123;.HeapType = D3D12_HEAP_TYPE_DEFAULT&#125;;<br><span class="hljs-built_in">ThrowIfFailed</span>(_context-&gt;<span class="hljs-built_in">Allocator</span>()-&gt;<span class="hljs-built_in">CreateResource</span>(<br>      &amp;allocDesc, &amp;depthDesc,<br>      D3D12_RESOURCE_STATE_GENERIC_READ,<br>      &amp;clearVal,<br>      &amp;_resAlloc,<br>      <span class="hljs-built_in">IID_PPV_ARGS</span>(&amp;_res)));<br></code></pre></td></tr></table></figure>
+<p>由于只有要将纹理交给像素着色器使用，还要作为深度图交给管线去写入，因此这里资源的格式指定为R32_TYPELESS，精度也指定为32位，反正是学习和实验无所谓（</p>
+<p>初始状态指定为GENERIC_READ，指定为COMMON应该也没差，之后反正要切换状态</p>
+<p>有了Resource，我们还需要为之后给着色器采样创建SRV</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs C++">D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc&#123;&#125;;<br>srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;<br>srvDesc.Format = DXGI_FORMAT_R32_FLOAT;<br>srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;<br>srvDesc.TextureCube.MostDetailedMip = <span class="hljs-number">0</span>;<br>srvDesc.TextureCube.MipLevels = <span class="hljs-number">1</span>;<br>srvDesc.TextureCube.ResourceMinLODClamp = <span class="hljs-number">0.0f</span>;<br><span class="hljs-comment">// 以下省略...</span><br></code></pre></td></tr></table></figure>
+<p>读取时的纹理格式指定为R32_FLOAT</p>
+<p>接着为CubeMap的6张纹理创建生成各自的DSV，之后在渲染时传给管线。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">6</span>; i++) &#123;<br>  D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc&#123;&#125;;<br>  dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;<br>  dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;<br>  dsvDesc.Texture2DArray.MipSlice = <span class="hljs-number">0</span>;<br>  dsvDesc.Texture2DArray.FirstArraySlice = i;<br>  dsvDesc.Texture2DArray.ArraySize = <span class="hljs-number">1</span>;<br>  <span class="hljs-comment">// 以下省略...</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>也没什么特殊的，唯一需要注意的是格式要指定为D32_FLOAT，不是R32_FLOAT</p>
+<h2 id="阴影Shader">阴影Shader</h2>
+<p>learnopengl介绍了用几何着色器一次性处理6次场景绘制，也描述了不一定能加速的理由，那我们在这里就不用几何着色器，而是最naive的真的画6次吧（主要是懒</p>
+<p>阴影shader里要做的事情很少，而且由于只写入深度信息，连颜色都不需要输出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs HLSL">cbuffer _PreObject : register(b0) &#123;<br>  float4x4 g_model;<br>  float4x4 g_mvp;<br>  float4x4 g_invModel;<br>&#125;;<br><br>struct VertexIn &#123;<br>  float3 Pos : POSITION;<br>  float3 Nor : NORMAL;<br>  float2 UV0 : TEXCOORD0;<br>  float4 Tan : TANGENT;<br>&#125;;<br><br>float4 VS(VertexIn vin) : SV_POSITION &#123;<br>  return mul(g_mvp, float4(vin.Pos, 1.0f));<br>&#125;<br><br>void PS() &#123;&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="绘制阴影Pass">绘制阴影Pass</h2>
+<p>和定向光的阴影pass一样，把相机摆在光源坐标处看向场景，并记录深度信息。</p>
+<p>这里我们以CubeMap在纹理数组里保存的顺序（就是X+，X-，Y+，Y-，Z+，Z-）来依次绘制。</p>
+<p>定向光的相机使用的正交投影，因为定向光的光线间都是平行的照射到场景里。依此类推，点光源就应该使用透视投影，而且fov是90度，就可以生成无缝的CubeMap</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C++">Eigen::Vector3f target[<span class="hljs-number">6</span>] = &#123;<br>    Eigen::Vector3f&#123;lightPos.<span class="hljs-built_in">x</span>() + <span class="hljs-number">1</span>, lightPos.<span class="hljs-built_in">y</span>(), lightPos.<span class="hljs-built_in">z</span>()&#125;,<br>    Eigen::Vector3f&#123;lightPos.<span class="hljs-built_in">x</span>() - <span class="hljs-number">1</span>, lightPos.<span class="hljs-built_in">y</span>(), lightPos.<span class="hljs-built_in">z</span>()&#125;,<br>    Eigen::Vector3f&#123;lightPos.<span class="hljs-built_in">x</span>(), lightPos.<span class="hljs-built_in">y</span>() + <span class="hljs-number">1</span>, lightPos.<span class="hljs-built_in">z</span>()&#125;,<br>    Eigen::Vector3f&#123;lightPos.<span class="hljs-built_in">x</span>(), lightPos.<span class="hljs-built_in">y</span>() - <span class="hljs-number">1</span>, lightPos.<span class="hljs-built_in">z</span>()&#125;,<br>    Eigen::Vector3f&#123;lightPos.<span class="hljs-built_in">x</span>(), lightPos.<span class="hljs-built_in">y</span>(), lightPos.<span class="hljs-built_in">z</span>() + <span class="hljs-number">1</span>&#125;,<br>    Eigen::Vector3f&#123;lightPos.<span class="hljs-built_in">x</span>(), lightPos.<span class="hljs-built_in">y</span>(), lightPos.<span class="hljs-built_in">z</span>() - <span class="hljs-number">1</span>&#125;&#125;;<br>Eigen::Vector3f up[<span class="hljs-number">6</span>] = &#123;<br>    Eigen::Vector3f&#123;<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>&#125;,<br>    Eigen::Vector3f&#123;<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>&#125;,<br>    Eigen::Vector3f&#123;<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">-1</span>&#125;,<br>    Eigen::Vector3f&#123;<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>&#125;,<br>    Eigen::Vector3f&#123;<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>&#125;,<br>    Eigen::Vector3f&#123;<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>&#125;&#125;;<br></code></pre></td></tr></table></figure>
+<p>首先提前写好透视投影相机的参数。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function">CD3DX12_VIEWPORT <span class="hljs-title">viewport</span><span class="hljs-params">(<span class="hljs-number">0.0f</span>, <span class="hljs-number">0.0f</span>, depSize.x(), depSize.y())</span></span>;<br>cmdList-&gt;<span class="hljs-built_in">RSSetViewports</span>(<span class="hljs-number">1</span>, &amp;viewport);<br><span class="hljs-function">CD3DX12_RECT <span class="hljs-title">rect</span><span class="hljs-params">(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, depSize.x(), depSize.y())</span></span>;<br>cmdList-&gt;<span class="hljs-built_in">RSSetScissorRects</span>(<span class="hljs-number">1</span>, &amp;rect);<br><span class="hljs-keyword">auto</span> toWrite = CD3DX12_RESOURCE_BARRIER::<span class="hljs-built_in">Transition</span>(depthMap-&gt;<span class="hljs-built_in">GetResource</span>(), depthMap-&gt;<span class="hljs-built_in">GetInitState</span>(), D3D12_RESOURCE_STATE_DEPTH_WRITE);<br>cmdList-&gt;<span class="hljs-built_in">ResourceBarrier</span>(<span class="hljs-number">1</span>, &amp;toWrite);<br><span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">6</span>; i++) &#123;<br>  <span class="hljs-comment">// 以上省略 depthView 的获取...</span><br>  cmdList-&gt;<span class="hljs-built_in">ClearDepthStencilView</span>(depthView, D3D12_CLEAR_FLAG_DEPTH, <span class="hljs-number">1.0f</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">nullptr</span>);<br>  cmdList-&gt;<span class="hljs-built_in">OMSetRenderTargets</span>(<span class="hljs-number">0</span>, <span class="hljs-literal">nullptr</span>, <span class="hljs-literal">true</span>, &amp;depthView);<br>  GlobalCBuffer global&#123;&#125;;<br>  global.View = <span class="hljs-built_in">LookAtLH</span>(lightPos, target[i], up[i]);<br>  global.Proj = <span class="hljs-built_in">PerspectiveLH</span>(<span class="hljs-built_in">Radian</span>(<span class="hljs-number">90.0f</span>), <span class="hljs-number">1</span>, <span class="hljs-number">0.1f</span>, <span class="hljs-number">1000.0f</span>);<br>  global.VP = global.Proj * global.View;<br>  <span class="hljs-comment">// 上传参数到 cbuffer...</span><br>  <span class="hljs-comment">// 遍历物体绘制...</span><br>&#125;<br><span class="hljs-keyword">auto</span> toInit = CD3DX12_RESOURCE_BARRIER::<span class="hljs-built_in">Transition</span>(depthMap-&gt;<span class="hljs-built_in">GetResource</span>(), D3D12_RESOURCE_STATE_DEPTH_WRITE, depthMap-&gt;<span class="hljs-built_in">GetInitState</span>());<br>cmdList-&gt;<span class="hljs-built_in">ResourceBarrier</span>(<span class="hljs-number">1</span>, &amp;toInit);<br></code></pre></td></tr></table></figure>
+<p>绘制过程也很简单，首先别忘了设置视口，也别忘了把CubeMap的状态转换为DEPTH_WRITE。</p>
+<p>相机参数在CPU计算好后传到cbuffer</p>
+<p>最后也别忘了把CubeMap的状态转换回去</p>
+<h2 id="绘制着色Pass">绘制着色Pass</h2>
+<p>和普通着色的区别基本只在着色器里，CPU端唯一要做的只有绑定CubeMap的SRV到管线上</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs HLSL">float3 toLight = light.WorldPos - posW;<br>float dist = length(toLight);<br>float3 dirL = toLight / dist;<br>float vis = 0;<br><br>float depth = _PointShadow.Sample(g_Sampler, -dirL).r;<br>float far = POINT_LIGHT_FARZ;<br>float near = POINT_LIGHT_NEARZ;<br>float bias = POINT_LIGHT_BIAS;<br>depth = depth * (far - near);<br>vis = (dist &lt;= depth + bias) ? 1 : 0;<br><br>// 后续着色...<br></code></pre></td></tr></table></figure>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%AC%94%E8%AE%B0/" class="category-chain-item">笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/D3D12/" class="print-no-link">#D3D12</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>点光源阴影</div>
+      <div>https://ksgfk.github.io/2023/09/08/D3D12-点光源阴影/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ksgfk</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年9月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/10/20/DotNet-Basic/" title="[ASP.NET Core] 概述">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[ASP.NET Core] 概述</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/11/10/Volume_Scattering/" title="Volume Scattering">
+                        <span class="hidden-mobile">Volume Scattering</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      沪ICP备2025108779号-1
+    </a>
+  </span>
+  
+</div>
+
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

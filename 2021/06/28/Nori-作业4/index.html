@@ -1,0 +1,815 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Assignment 4 在本作业中，我们需要实现一个直接光照的积分器。在作业的第二部分，我们还要实现电介质的 BSDF 模型。 Part 1 首先需要实现，让任何模型都能成为光源 nori建议我们对模型所有面均匀采样 步骤：  在模型上均匀采样一个坐标点 对每个顶点上的法线插值算出坐标点的法线。当网格没提供每个顶点的法线时，改为计算法线方向 计算概率密度，因为均匀采样，所以是表面积分之1  Di">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Nori]作业4">
+<meta property="og:url" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/index.html">
+<meta property="og:site_name" content="ksgfk&#39;s blog">
+<meta property="og:description" content="Assignment 4 在本作业中，我们需要实现一个直接光照的积分器。在作业的第二部分，我们还要实现电介质的 BSDF 模型。 Part 1 首先需要实现，让任何模型都能成为光源 nori建议我们对模型所有面均匀采样 步骤：  在模型上均匀采样一个坐标点 对每个顶点上的法线插值算出坐标点的法线。当网格没提供每个顶点的法线时，改为计算法线方向 计算概率密度，因为均匀采样，所以是表面积分之1  Di">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/logo-diffuse.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/cbox-distributed.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/%E6%B5%8B%E8%AF%95.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/%E7%86%94%E7%82%89%E6%B5%8B%E8%AF%95.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/logo-dielectric.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/cbox-whitted.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/%E5%A5%87%E6%80%AA%E7%9A%84%E7%99%BD%E7%82%B9.png">
+<meta property="article:published_time" content="2021-06-28T12:53:00.000Z">
+<meta property="article:modified_time" content="2021-07-13T06:21:08.615Z">
+<meta property="article:author" content="ksgfk">
+<meta property="article:tag" content="图形学">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ksgfk.github.io/2021/06/28/Nori-%E4%BD%9C%E4%B8%9A4/logo-diffuse.png">
+  
+  
+  
+  <title>[Nori]作业4 - ksgfk&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ksgfk&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="[Nori]作业4"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-06-28 20:53" pubdate>
+          2021年6月28日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          2.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          23 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">[Nori]作业4</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="Assignment-4">Assignment 4</h2>
+<p>在本作业中，我们需要实现一个直接光照的积分器。在作业的第二部分，我们还要实现电介质的 BSDF 模型。</p>
+<h3 id="Part-1">Part 1</h3>
+<p>首先需要实现，让任何模型都能成为光源</p>
+<p>nori建议我们对模型所有面均匀采样</p>
+<p>步骤：</p>
+<ol>
+<li>在模型上均匀采样一个坐标点</li>
+<li>对每个顶点上的法线插值算出坐标点的法线。当网格没提供每个顶点的法线时，改为计算法线方向</li>
+<li>计算概率密度，因为均匀采样，所以是表面积分之1</li>
+</ol>
+<p><code>DiscretePDF</code>类可以高效储存和查询离散pdf（看了下代码，它其实就是个前缀和…记录了每个三角形的总概率（就类似连续型随机变量的分布函数），最后归一化保证总概率是1）</p>
+<p>使用重心坐标插值法线，可以使用公式：</p>
+<p class="katex-block "><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mo fence="true">(</mo><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>α</mi></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>β</mi></mstyle></mtd></mtr></mtable><mo fence="true">)</mo></mrow><mo>=</mo><mrow><mo fence="true">(</mo><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mn>1</mn><mo>−</mo><msqrt><mrow><mn>1</mn><mo>−</mo><msub><mi>ξ</mi><mn>1</mn></msub></mrow></msqrt></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><msub><mi>ξ</mi><mn>2</mn></msub><mtext> </mtext><msqrt><mrow><mn>1</mn><mo>−</mo><msub><mi>ξ</mi><mn>1</mn></msub></mrow></msqrt></mrow></mstyle></mtd></mtr></mtable><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{pmatrix}
+            \alpha\\
+            \beta
+            \end{pmatrix}
+            = \begin{pmatrix}
+            1 - \sqrt{1 - \xi_1}\\
+            \xi_2\, \sqrt{1 - \xi_1}
+            \end{pmatrix}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05278em;">β</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.835em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04601em;">ξ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.046em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.795em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.205em;"><span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.04601em;">ξ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.046em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.835em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04601em;">ξ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.046em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.795em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.205em;"><span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p>
+<p>其中，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ξ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\xi_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04601em;">ξ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.046em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>和<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ξ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\xi_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04601em;">ξ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.046em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>是均匀随机数，最后的重心坐标是<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>α</mi><mo separator="true">,</mo><mi>β</mi><mo separator="true">,</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo>−</mo><mi>β</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(\alpha, \beta, 1-\alpha-\beta)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.05278em;">β</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05278em;">β</span><span class="mclose">)</span></span></span></span></p>
+<p>既然是均匀采样网格，那就把我们的实现放到<code>mesh</code>类里好了</p>
+<p>因为采样需要返回坐标点，法线和pdf，我们定义一个<code>struct</code>来存这些数据</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">SampleMeshResult</span> &#123;<br>  Point3f p;<br>  Normal3f n;<br>  <span class="hljs-type">float</span> pdf;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>在<code>Mesh</code>类里定义两个成员变量和用来查询的成员方法</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Mesh</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-function"><span class="hljs-type">const</span> DiscretePDF&amp; <span class="hljs-title">getPdf</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> m_disPdf; &#125;<br>  <span class="hljs-function">SampleMeshResult <span class="hljs-title">sampleSurfaceUniform</span><span class="hljs-params">(Sampler* sampler)</span> <span class="hljs-type">const</span></span>;<br> <span class="hljs-keyword">protected</span>:<br>  <span class="hljs-comment">//其他代码不展示了...</span><br>  <span class="hljs-type">float</span> m_area;                  <span class="hljs-comment">//表面积</span><br>  DiscretePDF m_disPdf;          <span class="hljs-comment">//每个三角形的pdf</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>首先去<code>activate</code>函数里把每个三角形的pdf算出来。<code>nori</code>在解析场景xml的时候会调用一次这个函数</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Mesh::activate</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!m_bsdf) &#123;<br>    <span class="hljs-comment">/* If no material was assigned, instantiate a diffuse BRDF */</span><br>    m_bsdf = <span class="hljs-built_in">static_cast</span>&lt;BSDF*&gt;(<br>        NoriObjectFactory::<span class="hljs-built_in">createInstance</span>(<span class="hljs-string">&quot;diffuse&quot;</span>, <span class="hljs-built_in">PropertyList</span>()));<br>  &#125;<br>  m_area = <span class="hljs-number">0.0f</span>;<span class="hljs-comment">//总面积</span><br>  m_disPdf.<span class="hljs-built_in">reserve</span>(<span class="hljs-built_in">getTriangleCount</span>());<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">uint32_t</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">getTriangleCount</span>(); i++) &#123;<br>    <span class="hljs-keyword">auto</span> area = <span class="hljs-built_in">surfaceArea</span>(i);<br>    m_area += area;<br>    m_disPdf.<span class="hljs-built_in">append</span>(area);<br>  &#125;<br>  m_disPdf.<span class="hljs-built_in">normalize</span>();<span class="hljs-comment">//别忘了归一化，不然总概率就不是1了</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>去<code>mesh.cpp</code>里实现均匀采样</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function">SampleMeshResult <span class="hljs-title">Mesh::sampleSurfaceUniform</span><span class="hljs-params">(Sampler* sampler)</span> <span class="hljs-type">const</span> </span>&#123;<br>  SampleMeshResult result;<br>  <span class="hljs-type">uint32_t</span> idx = m_disPdf.<span class="hljs-built_in">sample</span>(sampler-&gt;<span class="hljs-built_in">next1D</span>());<span class="hljs-comment">//均匀随机一个三角形</span><br>  <span class="hljs-comment">//重心坐标</span><br>  Point2f rng = sampler-&gt;<span class="hljs-built_in">next2D</span>();<span class="hljs-comment">//算重心坐标</span><br>  <span class="hljs-type">float</span> alpha = <span class="hljs-number">1</span> - <span class="hljs-built_in">sqrt</span>(<span class="hljs-number">1</span> - rng.<span class="hljs-built_in">x</span>());<br>  <span class="hljs-type">float</span> beta = rng.<span class="hljs-built_in">y</span>() * <span class="hljs-built_in">sqrt</span>(<span class="hljs-number">1</span> - rng.<span class="hljs-built_in">x</span>());<br>  Point3f v0 = m_V.<span class="hljs-built_in">col</span>(<span class="hljs-built_in">m_F</span>(<span class="hljs-number">0</span>, idx));<br>  Point3f v1 = m_V.<span class="hljs-built_in">col</span>(<span class="hljs-built_in">m_F</span>(<span class="hljs-number">1</span>, idx));<br>  Point3f v2 = m_V.<span class="hljs-built_in">col</span>(<span class="hljs-built_in">m_F</span>(<span class="hljs-number">2</span>, idx));<br>  Point3f p = alpha * v0 + beta * v1 + (<span class="hljs-number">1</span> - alpha - beta) * v2;<span class="hljs-comment">//用重心坐标插值出坐标</span><br>  result.p = p;<br>  <span class="hljs-keyword">if</span> (m_N.<span class="hljs-built_in">size</span>() != <span class="hljs-number">0</span>) &#123;<span class="hljs-comment">//如果有存法线</span><br>    Point3f n0 = m_N.<span class="hljs-built_in">col</span>(<span class="hljs-built_in">m_F</span>(<span class="hljs-number">0</span>, idx));<br>    Point3f n1 = m_N.<span class="hljs-built_in">col</span>(<span class="hljs-built_in">m_F</span>(<span class="hljs-number">1</span>, idx));<br>    Point3f n2 = m_N.<span class="hljs-built_in">col</span>(<span class="hljs-built_in">m_F</span>(<span class="hljs-number">2</span>, idx));<br>    result.n = (alpha * n0 + beta * n1 + (<span class="hljs-number">1</span> - alpha - beta) * n2).<span class="hljs-built_in">normalized</span>();<span class="hljs-comment">//用重心坐标插值出法线</span><br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    Vector3f e1 = v1 - v0;<br>    Vector3f e2 = v2 - v0;<br>    result.n = e1.<span class="hljs-built_in">cross</span>(e2).<span class="hljs-built_in">normalized</span>();<span class="hljs-comment">//叉乘算法线</span><br>  &#125;<br>  result.pdf = m_disPdf.<span class="hljs-built_in">getNormalization</span>();<br>  <span class="hljs-keyword">return</span> result;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>接下来，我们需要去<code>Emitter</code>类里面实现采样、计算pdf、返回radiance的函数，这些完全由我们来定义。教程建议参考<code>BSDF</code>类定义了的</p>
+<p><code>BSDF</code>有个用于用于传递各种参数的结构体<code>BSDFQueryRecord</code>，我们模仿着写一个</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">EmitterQueryRecord</span> &#123;<br>  Point3f ref;<span class="hljs-comment">//表示着色点</span><br>  Point3f p;<span class="hljs-comment">//光源上的点</span><br>  Normal3f n;<span class="hljs-comment">//法线</span><br>  Vector3f wi;<span class="hljs-comment">//从着色点ref到光源p的方向</span><br>  <span class="hljs-type">float</span> pdf;<span class="hljs-comment">//采样点p的pdf</span><br>  Ray3f shadowRay;<span class="hljs-comment">//检测遮挡的射线</span><br><br>  <span class="hljs-built_in">EmitterQueryRecord</span>(<span class="hljs-type">const</span> Point3f&amp; ref) : <span class="hljs-built_in">ref</span>(ref) &#123;&#125;<br><br>  <span class="hljs-built_in">EmitterQueryRecord</span>(<span class="hljs-type">const</span> Point3f&amp; ref, <span class="hljs-type">const</span> Point3f&amp; p, <span class="hljs-type">const</span> Normal3f&amp; n) : <span class="hljs-built_in">ref</span>(ref), <span class="hljs-built_in">p</span>(p), <span class="hljs-built_in">n</span>(n) &#123;<br>    wi = (p - ref).<span class="hljs-built_in">normalized</span>();<br>  &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>在<code>Emitter</code>（其实是个接口？）里照抄<code>BSDF</code>定义纯虚函数</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Emitter</span> : <span class="hljs-keyword">public</span> NoriObject &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-keyword">virtual</span> ~<span class="hljs-built_in">Emitter</span>() &#123;&#125;<br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> Color3f <span class="hljs-title">eval</span><span class="hljs-params">(<span class="hljs-type">const</span> EmitterQueryRecord&amp; record)</span> <span class="hljs-type">const</span> </span>= <span class="hljs-number">0</span>;<br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> Color3f <span class="hljs-title">getRadiance</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>= <span class="hljs-number">0</span>;<br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">float</span> <span class="hljs-title">pdf</span><span class="hljs-params">(<span class="hljs-type">const</span> Mesh* mesh, <span class="hljs-type">const</span> EmitterQueryRecord&amp; lRec)</span> <span class="hljs-type">const</span> </span>= <span class="hljs-number">0</span>;<br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> Color3f <span class="hljs-title">sample</span><span class="hljs-params">(<span class="hljs-type">const</span> Mesh* mesh, EmitterQueryRecord&amp; lRec, Sampler*)</span> <span class="hljs-type">const</span> </span>= <span class="hljs-number">0</span>;<br><br>  <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * \brief Return the type of object (i.e. Mesh/Emitter/etc.) </span><br><span class="hljs-comment">     * provided by this instance</span><br><span class="hljs-comment">     * */</span><br>  <span class="hljs-function">EClassType <span class="hljs-title">getClassType</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> EEmitter; &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>然后来实现这个接口。在源码里创建一个<code>area.cpp</code>，CMakeLists.txt里添加一下。</p>
+<p>光源对着色点的贡献和入射角有关，可以直接在这里算渲染方程积分里面Li项</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;nori/emitter.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;nori/sampler.h&gt;</span></span><br>NORI_NAMESPACE_BEGIN<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">AreaLight</span> : <span class="hljs-keyword">public</span> Emitter &#123;<br> <span class="hljs-keyword">private</span>:<br>  Color3f m_radiance;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-built_in">AreaLight</span>(<span class="hljs-type">const</span> PropertyList&amp; propList) &#123;<br>    m_radiance = propList.<span class="hljs-built_in">getColor</span>(<span class="hljs-string">&quot;radiance&quot;</span>);<br>  &#125;<br>  <span class="hljs-function">Color3f <span class="hljs-title">eval</span><span class="hljs-params">(<span class="hljs-type">const</span> EmitterQueryRecord&amp; record)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">override</span> </span>&#123;<br>    <span class="hljs-type">const</span> EmitterQueryRecord&amp; lRec = record;<br>    <span class="hljs-keyword">return</span> (lRec.n.<span class="hljs-built_in">dot</span>(lRec.wi) &lt; <span class="hljs-number">0.0f</span>) ? m_radiance : <span class="hljs-number">0.0f</span>;<span class="hljs-comment">//法线和wi要面朝不同方向，这样光源正面才朝着着色点</span><br>  &#125;<br>  <span class="hljs-function">Color3f <span class="hljs-title">getRadiance</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> <span class="hljs-keyword">override</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> m_radiance;<br>  &#125;<br>  <span class="hljs-function">Color3f <span class="hljs-title">sample</span><span class="hljs-params">(<span class="hljs-type">const</span> Mesh* mesh, EmitterQueryRecord&amp; lRec, Sampler* sample)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">override</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> sRec = mesh-&gt;<span class="hljs-built_in">sampleSurfaceUniform</span>(sample);<span class="hljs-comment">//均匀采样一个光源</span><br>    lRec.p = sRec.p;<br>    lRec.n = sRec.n;<br>    lRec.wi = (lRec.p - lRec.ref).<span class="hljs-built_in">normalized</span>();<br>    lRec.shadowRay = <span class="hljs-built_in">Ray3f</span>(lRec.ref, lRec.wi, Epsilon, (lRec.p - lRec.ref).<span class="hljs-built_in">norm</span>() - Epsilon);<br>    lRec.pdf = <span class="hljs-built_in">pdf</span>(mesh, lRec);<br>    <span class="hljs-keyword">if</span> (lRec.pdf &gt; <span class="hljs-number">0.0f</span> &amp;&amp; !std::<span class="hljs-built_in">isnan</span>(lRec.pdf) &amp;&amp; !std::<span class="hljs-built_in">isinf</span>(lRec.pdf)) &#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">eval</span>(lRec) / lRec.pdf;<span class="hljs-comment">//直接返回除以了pdf的值</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Color3f</span>(<span class="hljs-number">0.0f</span>);<span class="hljs-comment">//返回0表示采样失败了</span><br>  &#125;<br>  <span class="hljs-function"><span class="hljs-type">float</span> <span class="hljs-title">pdf</span><span class="hljs-params">(<span class="hljs-type">const</span> Mesh* mesh, <span class="hljs-type">const</span> EmitterQueryRecord&amp; lRec)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">override</span> </span>&#123;<br>    <span class="hljs-type">float</span> cosTheta = lRec.n.<span class="hljs-built_in">dot</span>(-lRec.wi);<br>    <span class="hljs-keyword">if</span> (cosTheta &gt; <span class="hljs-number">0.0f</span>) &#123;<br>      <span class="hljs-comment">//原本的pdf是定义在光源面积上的，但是渲染方程里是定义在立体角上</span><br>      <span class="hljs-comment">//这里直接转换成立体角上的pdf了，之后有推导</span><br>      <span class="hljs-keyword">return</span> mesh-&gt;<span class="hljs-built_in">getPdf</span>().<span class="hljs-built_in">getNormalization</span>() * (lRec.p - lRec.ref).<span class="hljs-built_in">squaredNorm</span>() / cosTheta;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0.0f</span>;<br>  &#125;<br>  <span class="hljs-function">std::string <span class="hljs-title">toString</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> <span class="hljs-keyword">override</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Emitter[]&quot;</span>;<br>  &#125;<br>&#125;;<br><span class="hljs-built_in">NORI_REGISTER_CLASS</span>(AreaLight, <span class="hljs-string">&quot;area&quot;</span>)<br>NORI_NAMESPACE_END<br></code></pre></td></tr></table></figure>
+<h3 id="Part-2">Part 2</h3>
+<p>接下来，我们就要把所有东西组装起来了！</p>
+<p>在此之前，先回顾一下渲染方程：</p>
+<p class="katex-block "><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>L</mi><mi>r</mi></msub><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>r</mi></msub><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∫</mo><msup><mi mathvariant="script">H</mi><mn>2</mn></msup></msub><msub><mi>f</mi><mi>r</mi></msub><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>ω</mi><mi>r</mi></msub><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>L</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mi>cos</mi><mo>⁡</mo><msub><mi>θ</mi><mi>i</mi></msub><mtext> </mtext><mi mathvariant="normal">d</mi><msub><mi>ω</mi><mi>i</mi></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\newcommand{\vx}{\mathbf{x}}
+                \newcommand{\vc}{\mathbf{c}}
+                \newcommand{\vy}{\mathbf{y}}
+                \newcommand{\vn}{\mathbf{n}}
+                L_r(\vx,\omega_r) = \int_{\mathcal{H}^2} f_r (\vx,\omega_i,\omega_r)\,L_i (\vx,\omega_i)  \cos\theta_i\, \mathrm{d}\omega_i.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2719em;vertical-align:-0.9119em;"></span><span class="mop"><span class="mop op-symbol large-op" style="margin-right:0.44445em;position:relative;top:-0.0011em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:-0.3895em;"><span style="top:-1.7881em;margin-left:-0.4445em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.00965em;">H</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7463em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9119em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathrm">d</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span></p>
+<p>我们有<code>BSDF</code>类可以计算<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">f_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，有<code>Emitter</code>类可以计算<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">L_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，似乎没有什么问题了。但是，这个任务中我们只计算直接光照，这就意味着，除了射线碰巧击中光源，其他地方返回都是0，这样做的效率极低，只有一部分射线会碰到光源，其他射线会产生大量噪点。所以我们需要让射线更容易击中光源。</p>
+<p>更好的办法是，直接在光源上采样并检查可见性，而不是在物体表面采样。这意味着我们需要将渲染方程从半球上改写到光源上</p>
+<p class='katex-block katex-error ' title='ParseError: KaTeX parse error: Undefined control sequence: \vx at position 50: …           L_r(\̲v̲x̲,\omega_r) = \i…'>\newcommand{\vr}{\mathbf{r}}
+                L_r(\vx,\omega_r) = \int_{\mathcal{L}} f_r (\vx,\vx\to\vy,\omega_r)\,L_e (\vy,\vy\to\vx) \, \mathrm{d} \vy
+</p>
+<p>其中<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">x</mi><mo>→</mo><mi mathvariant="bold">y</mi></mrow><annotation encoding="application/x-tex">\mathbf{x}\to\mathbf{y}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord mathbf">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.1944em;"></span><span class="mord mathbf" style="margin-right:0.01597em;">y</span></span></span></span>表示从x到y的归一化方向，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>e</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>ω</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">L_e(x,\omega)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">ω</span><span class="mclose">)</span></span></span></span>表示在<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>点向<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi></mrow><annotation encoding="application/x-tex">\omega</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">ω</span></span></span></span>方向发射的radiance量</p>
+<p>但是这个积分算式不正确，因为我们将积分变量从立体角改为了位置，应该再加一项几何项</p>
+<p class='katex-block katex-error ' title='ParseError: KaTeX parse error: Undefined control sequence: \vx at position 3: G(\̲v̲x̲\leftrightarrow…'>G(\vx\leftrightarrow\vy) :=V(\vx\leftrightarrow\vy)\frac{
+            |\vn_\vx \cdot(\vx\to\vy)|\,\cdot\,
+            |\vn_\vy \cdot(\vy\to\vx)|}{\|\vx-\vy\|^2}
+</p>
+<p>第一项<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false">(</mo><mi>x</mi><mo>↔</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">V(x\leftrightarrow y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">↔</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>是可见性函数，0表示不可见，1表示可见。分子包含两个点乘的绝对值，相当于把光源面积投影到着色点单位圆上的那块面积，分母是我们在使用点光源渲染时已经观察到的平方反比衰减。最终的渲染方程是：</p>
+<p class='katex-block katex-error ' title='ParseError: KaTeX parse error: Undefined control sequence: \vx at position 50: …           L_r(\̲v̲x̲,\omega_r) = \i…'>\newcommand{\vr}{\mathbf{r}}
+                L_r(\vx,\omega_r) = \int_{\mathcal{L}} f_r (\vx,\vx\to\vy,\omega_r)\,G(\vx\leftrightarrow\vy)\,L_e (\vy,\vy\to\vx)\, \mathrm{d} \vy
+</p>
+<p>注意，原渲染方程中的余弦项合并到了几何项里面，并没有消失</p>
+<p>现在我们可以真的开始写分布光追了！</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;nori/integrator.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;nori/scene.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;nori/sampler.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;nori/emitter.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;nori/bsdf.h&gt;</span></span><br>NORI_NAMESPACE_BEGIN<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">WhittedIntegrator</span> : <span class="hljs-keyword">public</span> Integrator &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-built_in">WhittedIntegrator</span>(<span class="hljs-type">const</span> PropertyList&amp; props) &#123;&#125;<br>  <span class="hljs-function">Color3f <span class="hljs-title">Li</span><span class="hljs-params">(<span class="hljs-type">const</span> Scene* scene, Sampler* sampler, <span class="hljs-type">const</span> Ray3f&amp; ray)</span> <span class="hljs-type">const</span> </span>&#123;<br>    Intersection its;<br>    <span class="hljs-function">Color3f <span class="hljs-title">color</span><span class="hljs-params">(<span class="hljs-number">0.0f</span>)</span></span>;<br>    <span class="hljs-keyword">if</span> (!scene-&gt;<span class="hljs-built_in">rayIntersect</span>(ray, its)) &#123;<br>      <span class="hljs-keyword">return</span> color;<span class="hljs-comment">//没碰到任何场景物体直接返回</span><br>    &#125;<br>    <span class="hljs-function">Color3f <span class="hljs-title">Le</span><span class="hljs-params">(<span class="hljs-number">0.0f</span>)</span></span>;<br>    <span class="hljs-keyword">if</span> (its.mesh-&gt;<span class="hljs-built_in">isEmitter</span>()) &#123;<span class="hljs-comment">//光源</span><br>      <span class="hljs-function">EmitterQueryRecord <span class="hljs-title">lRecE</span><span class="hljs-params">(ray.o, its.p, its.shFrame.n)</span></span>;<br>      Le = its.mesh-&gt;<span class="hljs-built_in">getEmitter</span>()-&gt;<span class="hljs-built_in">eval</span>(lRecE);<br>    &#125;<br>    <span class="hljs-function">BSDFQueryRecord <span class="hljs-title">bRec</span><span class="hljs-params">(its.shFrame.toLocal(-ray.d))</span></span>;<span class="hljs-comment">//入射方向是世界坐标，bsdf计算时在切线空间下</span><br>    Color3f f = its.mesh-&gt;<span class="hljs-built_in">getBSDF</span>()-&gt;<span class="hljs-built_in">sample</span>(bRec, sampler-&gt;<span class="hljs-built_in">next2D</span>());<span class="hljs-comment">//就是公式中的fr</span><br>    Color3f Li = <span class="hljs-number">0</span>;<br>    Ray3f rayR = <span class="hljs-built_in">Ray3f</span>(its.p, its.shFrame.<span class="hljs-built_in">toWorld</span>(bRec.wo), <span class="hljs-number">0.0001f</span>);<br>    Intersection itsR;<br>    <span class="hljs-keyword">if</span> (scene-&gt;<span class="hljs-built_in">rayIntersect</span>(rayR, itsR)) &#123;<span class="hljs-comment">//出射方向有没有碰到物体</span><br>      <span class="hljs-keyword">if</span> (itsR.mesh-&gt;<span class="hljs-built_in">isEmitter</span>()) &#123;<br>        EmitterQueryRecord lRec = <span class="hljs-built_in">EmitterQueryRecord</span>(its.p, itsR.p, itsR.shFrame.n);<br>        Li = itsR.mesh-&gt;<span class="hljs-built_in">getEmitter</span>()-&gt;<span class="hljs-built_in">eval</span>(lRec);<span class="hljs-comment">//出射方向正好是光源，也就是公式的Li</span><br>      &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> Le + Li * f;<br>  &#125;<br>  <span class="hljs-function">std::string <span class="hljs-title">toString</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;WhittedIntegrator[]&quot;</span>;<br>  &#125;<br>&#125;;<br><span class="hljs-built_in">NORI_REGISTER_CLASS</span>(WhittedIntegrator, <span class="hljs-string">&quot;whitted&quot;</span>);<br>NORI_NAMESPACE_END<br></code></pre></td></tr></table></figure>
+<p>编译运行！<br>
+<img src="logo-diffuse.png" srcset="/img/loading.gif" lazyload alt=""><br>
+真不错，这张的ssp是32，噪点还可以<br>
+<img src="cbox-distributed.png" srcset="/img/loading.gif" lazyload alt=""><br>
+这张的ssp甚至是4，对光源采样太棒了！</p>
+<p>再跑一跑测试<br>
+<img src="%E6%B5%8B%E8%AF%95.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="%E7%86%94%E7%82%89%E6%B5%8B%E8%AF%95.png" srcset="/img/loading.gif" lazyload alt=""><br>
+通过！</p>
+<h3 id="Part-3">Part 3</h3>
+<p>这部分我们需要实现一个电介质材质（就是绝缘体）</p>
+<p><code>nori</code>已经帮我们定义好了基于Dirac delta function（这是啥？）的完美镜面反射的mirror材质和菲涅尔项的计算函数</p>
+<p>需要实现的电介质材质代码在<code>src/dielectric.cpp</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function">Color3f <span class="hljs-title">sample</span><span class="hljs-params">(BSDFQueryRecord&amp; bRec, <span class="hljs-type">const</span> Point2f&amp; sample)</span> <span class="hljs-type">const</span> </span>&#123;<br>  bRec.measure = EDiscrete;<br>  <span class="hljs-type">float</span> cosThetaI = Frame::<span class="hljs-built_in">cosTheta</span>(bRec.wi);<br>  <span class="hljs-type">float</span> kr = <span class="hljs-built_in">fresnel</span>(cosThetaI, m_extIOR, m_intIOR);<br>  <span class="hljs-keyword">if</span> (sample.<span class="hljs-built_in">x</span>() &lt; kr) &#123;<br>    bRec.wo = <span class="hljs-built_in">Vector3f</span>(-bRec.wi.<span class="hljs-built_in">x</span>(), -bRec.wi.<span class="hljs-built_in">y</span>(), bRec.wi.<span class="hljs-built_in">z</span>());<br>    bRec.eta = <span class="hljs-number">1.f</span>;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Color3f</span>(<span class="hljs-number">1.0f</span>);<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    bRec.eta = cosThetaI &gt;= <span class="hljs-number">0</span> ? m_extIOR / m_intIOR : m_intIOR / m_extIOR;<br>    Normal3f n = cosThetaI &lt; <span class="hljs-number">0</span> ? <span class="hljs-built_in">Normal3f</span>(<span class="hljs-number">0.f</span>, <span class="hljs-number">0.f</span>, <span class="hljs-number">-1.f</span>) : <span class="hljs-built_in">Normal3f</span>(<span class="hljs-number">0.f</span>, <span class="hljs-number">0.f</span>, <span class="hljs-number">1.f</span>);<br>    cosThetaI = <span class="hljs-built_in">abs</span>(cosThetaI);<br>    <span class="hljs-type">float</span> cosThetaO = <span class="hljs-built_in">sqrt</span>(<span class="hljs-number">1</span> - bRec.eta * bRec.eta * <span class="hljs-built_in">fmax</span>(<span class="hljs-number">0.f</span>, <span class="hljs-number">1.f</span> - cosThetaI * cosThetaI));<br>    bRec.wo = bRec.eta * -bRec.wi + (bRec.eta * cosThetaI - cosThetaO) * n;<br>    bRec.wo.<span class="hljs-built_in">normalize</span>();<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Color3f</span>(bRec.eta * bRec.eta);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>说实话完全不知道要如何写…这段代码是CV来的…不过不影响我们使用（233</p>
+<h3 id="Part-4">Part 4</h3>
+<p>现在我们要实现whitted-style光追</p>
+<p>漫反射材质我们从光源上采样，但是镜面材质和电介质不行，它们的pdf永远是0，所以只能根据bsdf去采样出射方向。</p>
+<p>因为反射和折射可以无限递归下去，直到打中漫反射材质，所以可以用以下方程来估计最终的radiance</p>
+<p class='katex-block katex-error ' title='ParseError: KaTeX parse error: Undefined control sequence: \vc at position 5: L_i(\̲v̲c̲, \omega_c) = \…'>L_i(\vc, \omega_c) = \begin{cases}
+            \frac{1}{0.95}c L_i(\vx, \omega_r),&amp;\text{if $\xi &lt; 0.95$}\\
+           0,&amp;\text{otherwise}
+            \end{cases}
+</p>
+<p>所以这是一个递归算法</p>
+<p>现在可以修改<code>WhittedIntegrator</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function">Color3f <span class="hljs-title">Li</span><span class="hljs-params">(<span class="hljs-type">const</span> Scene* scene, Sampler* sampler, <span class="hljs-type">const</span> Ray3f&amp; ray)</span> <span class="hljs-type">const</span> </span>&#123;<br>  Intersection its;<br>  <span class="hljs-function">Color3f <span class="hljs-title">color</span><span class="hljs-params">(<span class="hljs-number">0.0f</span>)</span></span>;<br>  <span class="hljs-keyword">if</span> (!scene-&gt;<span class="hljs-built_in">rayIntersect</span>(ray, its)) &#123;<br>    <span class="hljs-keyword">return</span> color;<span class="hljs-comment">//没碰到任何场景物体直接返回</span><br>  &#125;<br>  <span class="hljs-function">Color3f <span class="hljs-title">Le</span><span class="hljs-params">(<span class="hljs-number">0.0f</span>)</span></span>;<br>  <span class="hljs-keyword">if</span> (its.mesh-&gt;<span class="hljs-built_in">isEmitter</span>()) &#123;<span class="hljs-comment">//光源</span><br>    <span class="hljs-function">EmitterQueryRecord <span class="hljs-title">lRecE</span><span class="hljs-params">(ray.o, its.p, its.shFrame.n)</span></span>;<br>    Le = its.mesh-&gt;<span class="hljs-built_in">getEmitter</span>()-&gt;<span class="hljs-built_in">eval</span>(lRecE);<br>  &#125;<br>  <span class="hljs-keyword">if</span> (its.mesh-&gt;<span class="hljs-built_in">getBSDF</span>()-&gt;<span class="hljs-built_in">isDiffuse</span>()) &#123;<span class="hljs-comment">//这里判断如果是漫反射材质就直接采样</span><br>    <span class="hljs-function">BSDFQueryRecord <span class="hljs-title">bRec</span><span class="hljs-params">(its.shFrame.toLocal(-ray.d))</span></span>;<span class="hljs-comment">//入射方向是世界坐标，bsdf计算时在切线空间下</span><br>    Color3f f = its.mesh-&gt;<span class="hljs-built_in">getBSDF</span>()-&gt;<span class="hljs-built_in">sample</span>(bRec, sampler-&gt;<span class="hljs-built_in">next2D</span>());<span class="hljs-comment">//就是公式中的fr</span><br>    Color3f Li = <span class="hljs-number">0</span>;<br>    Ray3f rayR = <span class="hljs-built_in">Ray3f</span>(its.p, its.shFrame.<span class="hljs-built_in">toWorld</span>(bRec.wo));<br>    Intersection itsR;<br>    <span class="hljs-keyword">if</span> (scene-&gt;<span class="hljs-built_in">rayIntersect</span>(rayR, itsR)) &#123;<span class="hljs-comment">//出射方向有没有碰到物体</span><br>      <span class="hljs-keyword">if</span> (itsR.mesh-&gt;<span class="hljs-built_in">isEmitter</span>()) &#123;<br>        EmitterQueryRecord lRec = <span class="hljs-built_in">EmitterQueryRecord</span>(its.p, itsR.p, itsR.shFrame.n);<br>        Li = itsR.mesh-&gt;<span class="hljs-built_in">getEmitter</span>()-&gt;<span class="hljs-built_in">eval</span>(lRec);<span class="hljs-comment">//出射方向正好是光源，也就是公式的Li</span><br>      &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> Le + Li * f;<br>  &#125; <span class="hljs-keyword">else</span> &#123;<span class="hljs-comment">//不是的话，递归</span><br>    BSDFQueryRecord <span class="hljs-built_in">bRec</span>(its.<span class="hljs-built_in">toLocal</span>(-ray.d));<br>    Color3f refColor = its.mesh-&gt;<span class="hljs-built_in">getBSDF</span>()-&gt;<span class="hljs-built_in">sample</span>(bRec, sampler-&gt;<span class="hljs-built_in">next2D</span>());<span class="hljs-comment">//采样一个出射方向</span><br>    <span class="hljs-keyword">if</span> (sampler-&gt;<span class="hljs-built_in">next1D</span>() &lt; <span class="hljs-number">0.95</span> &amp;&amp; refColor.<span class="hljs-built_in">x</span>() &gt; <span class="hljs-number">0.f</span>) &#123;<span class="hljs-comment">//递归终止条件</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">Li</span>(scene, sampler, <span class="hljs-built_in">Ray3f</span>(its.p, its.<span class="hljs-built_in">toWorld</span>(bRec.wo))) / <span class="hljs-number">0.95</span> * refColor;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">Color3f</span>(<span class="hljs-number">0.0f</span>);<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><img src="logo-dielectric.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="cbox-whitted.png" srcset="/img/loading.gif" lazyload alt=""><br>
+玻璃球和镜子真漂亮</p>
+<p><img src="%E5%A5%87%E6%80%AA%E7%9A%84%E7%99%BD%E7%82%B9.png" srcset="/img/loading.gif" lazyload alt=""><br>
+（话说玻璃球上有部分白点是什么…）</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BD%9C%E4%B8%9A/" class="category-chain-item">作业</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BD%9C%E4%B8%9A/Nori/" class="category-chain-item">Nori</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[Nori]作业4</div>
+      <div>https://ksgfk.github.io/2021/06/28/Nori-作业4/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ksgfk</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年6月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/08/06/Nori-%E4%BD%9C%E4%B8%9A5/" title="[Nori]作业5">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[Nori]作业5</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/06/24/Nori-%E4%BD%9C%E4%B8%9A3/" title="[Nori]作业3">
+                        <span class="hidden-mobile">[Nori]作业3</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      沪ICP备2025108779号-1
+    </a>
+  </span>
+  
+</div>
+
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

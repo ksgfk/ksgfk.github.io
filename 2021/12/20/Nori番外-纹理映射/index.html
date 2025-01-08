@@ -1,0 +1,725 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="番外会记录一下个人拿nori扩展或者修改的一些特性，不保证正确性，如果有问题请各位大佬指出来，我会非常开心 :) （没想到吧，除了nori本体的作业，还有会番外篇 啊对了，这里要特地说一下，nori本体是个C++工程，但是因为个人实在不想写C++，就拿C#复刻了一遍nori，基本一模一样，API都一样。不出意外的话，以后文章基本都是以C#为主。（想复刻回C++应该也比较简单吧（大概）） 放一下C#">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Nori]番外-简单纹理映射">
+<meta property="og:url" content="https://ksgfk.github.io/2021/12/20/Nori%E7%95%AA%E5%A4%96-%E7%BA%B9%E7%90%86%E6%98%A0%E5%B0%84/index.html">
+<meta property="og:site_name" content="ksgfk&#39;s blog">
+<meta property="og:description" content="番外会记录一下个人拿nori扩展或者修改的一些特性，不保证正确性，如果有问题请各位大佬指出来，我会非常开心 :) （没想到吧，除了nori本体的作业，还有会番外篇 啊对了，这里要特地说一下，nori本体是个C++工程，但是因为个人实在不想写C++，就拿C#复刻了一遍nori，基本一模一样，API都一样。不出意外的话，以后文章基本都是以C#为主。（想复刻回C++应该也比较简单吧（大概）） 放一下C#">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksgfk.github.io/2021/12/20/Nori%E7%95%AA%E5%A4%96-%E7%BA%B9%E7%90%86%E6%98%A0%E5%B0%84/%E7%BA%B9%E7%90%86%E5%9D%90%E6%A0%87.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/12/20/Nori%E7%95%AA%E5%A4%96-%E7%BA%B9%E7%90%86%E6%98%A0%E5%B0%84/202%E5%A8%98.png">
+<meta property="og:image" content="https://ksgfk.github.io/2021/12/20/Nori%E7%95%AA%E5%A4%96-%E7%BA%B9%E7%90%86%E6%98%A0%E5%B0%84/%E6%80%9D%E8%80%83%E5%AE%B6.png">
+<meta property="article:published_time" content="2021-12-20T13:38:00.000Z">
+<meta property="article:modified_time" content="2022-01-29T13:06:52.918Z">
+<meta property="article:author" content="ksgfk">
+<meta property="article:tag" content="图形学">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ksgfk.github.io/2021/12/20/Nori%E7%95%AA%E5%A4%96-%E7%BA%B9%E7%90%86%E6%98%A0%E5%B0%84/%E7%BA%B9%E7%90%86%E5%9D%90%E6%A0%87.png">
+  
+  
+  
+  <title>[Nori]番外-简单纹理映射 - ksgfk&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ksgfk&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="[Nori]番外-简单纹理映射"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-12-20 21:38" pubdate>
+          2021年12月20日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">[Nori]番外-简单纹理映射</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>番外会记录一下个人拿nori扩展或者修改的一些特性，不保证正确性，如果有问题请各位大佬指出来，我会非常开心 :)</p>
+<p>（没想到吧，除了nori本体的作业，还有会番外篇</p>
+<p>啊对了，这里要特地说一下，nori本体是个C++工程，但是因为个人实在不想写C++，就拿C#复刻了一遍nori，基本一模一样，API都一样。不出意外的话，以后文章基本都是以C#为主。（想复刻回C++应该也比较简单吧（大概））</p>
+<p>放一下C#版本的repo（顺便求个star）：<a target="_blank" rel="noopener" href="https://github.com/ksgfk/Pursuit">https://github.com/ksgfk/Pursuit</a></p>
+<p>这是nori番外篇的第一篇文章。我们先来实现一个相对简单，而且效果爆炸的功能</p>
+<h2 id="纹理映射">纹理映射</h2>
+<p>这里有很多部分是跟着Ray Tracing: The Next Week走的</p>
+<p>关于什么是纹理，GAMES101第9课已经为我们解释的非常清楚了。像是OpenGL这类图像API支持二维，三维的纹理。不过这里呢我们为了实现简单（挖坑），就只实现二维纹理了。以下说的纹理都是二维纹理。</p>
+<p><img src="%E7%BA%B9%E7%90%86%E5%9D%90%E6%A0%87.png" srcset="/img/loading.gif" lazyload alt="这里照搬GAMES101那张令人印象深刻的图了"></p>
+<p>众所周知，纹理也有坐标系，横轴是u纵轴是v，称为纹理坐标，范围0到1。一般来说坐标原点默认是左下角(0, 0)，右上角在(1, 1)。</p>
+<p>所以我们只要获取到uv坐标，就可以对纹理进行采样了</p>
+<p>一般来说，在建模软件里导出模型时，会同时导出模型的纹理坐标</p>
+<p>我们只需要根据光线与三角形相交时的重心坐标，对模型自带的纹理坐标进行插值，就可以得到需要的uv了，和法线插值是一个道理</p>
+<p>首先在<code>Common/Intersection.cs</code>里面添加一个uv字段（nori的Intersection声明在<code>mesh.h</code>里面）</p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs CS"><span class="hljs-keyword">public</span> <span class="hljs-keyword">readonly</span> <span class="hljs-keyword">struct</span> Intersection<br>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">readonly</span> Point3F P;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">float</span> T;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">readonly</span> IShape Shape;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">readonly</span> Frame ShadingFrame;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">readonly</span> Point2F Uv;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>然后在<code>Common/Mesh.cs</code>的<code>GetIntersectionInfo</code>方法里照着法线插值的代码CV一份改一下变成纹理坐标插值（nori原版的相交信息计算都在accel.cpp里面，不太方便，个人觉得这些可以抽象出来交给图元计算，为以后更多图元类型做准备）</p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs CS"><span class="hljs-keyword">if</span> (mesh.TexCoords.Count &gt; <span class="hljs-number">0</span>)<br>&#123;<br>    <span class="hljs-keyword">var</span> tc = mesh.GetTexCoord(index);<br>    itsUv = bary.X * (Vector2)tc.T0 + bary.Y * (Vector2)tc.T1 + bary.Z * (Vector2)tc.T2;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>别忘了uv坐标是要在BSDF里使用的，我们在<code>BsdfQueryRecord</code>里也新增一个uv字段，并且在各个积分器里填充</p>
+<p>接下来设计纹理类。众所周知，一张贴图的RGB通道不一定都用来保存数据，像是PBR里面metallic，roughness纹理只有R通道保存了数据。也就是说采样的返回值可能有许多类型。我们可以使用泛型（C++模板一样的233）<br>
+<code>Common/ITexture.cs</code></p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs CS"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">ITexture</span> &#123; &#125;<br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">ITexture</span>&lt;<span class="hljs-title">T</span>&gt; : <span class="hljs-title">ITexture</span> <span class="hljs-keyword">where</span> <span class="hljs-title">T</span> : <span class="hljs-title">struct</span><br>&#123;<br>    <span class="hljs-function">T <span class="hljs-title">Sample</span>(<span class="hljs-params">Point2F uv</span>)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>实现一个最简单的纯色纹理。<br>
+<code>Common/ConstantTexture.cs</code></p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs CS"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ConstantTexture</span>&lt;<span class="hljs-title">T</span>&gt; : <span class="hljs-title">ITexture</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">where</span> <span class="hljs-title">T</span> : <span class="hljs-title">struct</span><br>&#123;<br>    <span class="hljs-keyword">public</span> T Color &#123; <span class="hljs-keyword">get</span>; <span class="hljs-keyword">set</span>; &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConstantTexture</span>(<span class="hljs-params">T color</span>)</span><br>    &#123;<br>        Color = color;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">Sample</span>(<span class="hljs-params">Point2F uv</span>)</span><br>    &#123;<br>        <span class="hljs-keyword">return</span> Color;<br>    &#125;<br>&#125;<br><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ConstantTexture3F</span> : <span class="hljs-title">ConstantTexture</span>&lt;<span class="hljs-title">Color3F</span>&gt;<br>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConstantTexture3F</span>(<span class="hljs-params">Color3F color</span>) : <span class="hljs-title">base</span>(<span class="hljs-params">color</span>)</span> &#123; &#125;<br>&#125;<br><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ConstantTexture1F</span> : <span class="hljs-title">ConstantTexture</span>&lt;<span class="hljs-title">float</span>&gt;<br>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConstantTexture1F</span>(<span class="hljs-params"><span class="hljs-built_in">float</span> color</span>) : <span class="hljs-title">base</span>(<span class="hljs-params">color</span>)</span> &#123; &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>The Next Week介绍了一种程序化纹理，看上去像是国际象棋棋盘。以前在shader抄过一个效果类似的…但是忘记出处在哪了…具体实现可以看<code>Common/ChessboardTexture.cs</code>，这里就不放代码了</p>
+<p>接下来是从其他地方加载贴图作为纹理。C++可以用stb_image之类的库。C#加载纹理可以使用<a target="_blank" rel="noopener" href="https://github.com/dlemstra/Magick.NET">Magick.NET</a>。巨硬文档不推荐使用<code>System.Drawing</code></p>
+<p>具体怎么加载就不写了，就算有库辅助还是有很多要注意的…总之，最终我们拿到了一个贴图<code>Common/ImageTexture.cs</code>。直接对它采样就可以了。</p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs CS"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ImageTexture</span>&lt;<span class="hljs-title">T</span>&gt; : <span class="hljs-title">ITexture</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">where</span> <span class="hljs-title">T</span> : <span class="hljs-title">struct</span><br>&#123;<br>    <span class="hljs-keyword">public</span> IColorBuffer&lt;T&gt; Image &#123; <span class="hljs-keyword">get</span>; <span class="hljs-keyword">set</span>; &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">ImageTexture</span>(<span class="hljs-params">IColorBuffer&lt;T&gt; image</span>)</span> &#123; Image = image; &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">Sample</span>(<span class="hljs-params">Point2F uv</span>)</span><br>    &#123;<br>        <span class="hljs-built_in">float</span> du = uv.X * Image.Width;<br>        <span class="hljs-built_in">float</span> dv = uv.Y * Image.Height;<br>        <span class="hljs-built_in">int</span> u = Math.Clamp((<span class="hljs-built_in">int</span>)(du), <span class="hljs-number">0</span>, Image.Width - <span class="hljs-number">1</span>);<br>        <span class="hljs-built_in">int</span> v = Math.Clamp((<span class="hljs-built_in">int</span>)(dv), <span class="hljs-number">0</span>, Image.Width - <span class="hljs-number">1</span>);<br>        T color = Image[u, v];<br>        <span class="hljs-keyword">return</span> color;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>嗯，既然涉及到采样，那必然会出现失真现象。为了解决这种问题可以使用双线性插值，mipmap等一系列采样方法。不过这篇是简单纹理采样，就先不深入这些方法吧（主要是还不会233）</p>
+<p>接下来就是去各种BSDF里，把可以用纹理的参数替换掉，这是个体力活。</p>
+<p>在搞定纹理加载流程，搭建完测试场景后，首先来试一下Diffuse材质的纹理采样效果吧。我把GAMES202的202娘直接搬过来了，启动！<br>
+<img src="202%E5%A8%98.png" srcset="/img/loading.gif" lazyload alt=""><br>
+画面质量直接起飞</p>
+<p>再来几张结果<br>
+<img src="%E6%80%9D%E8%80%83%E5%AE%B6.png" srcset="/img/loading.gif" lazyload alt=""></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BD%9C%E4%B8%9A/" class="category-chain-item">作业</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BD%9C%E4%B8%9A/Nori/" class="category-chain-item">Nori</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[Nori]番外-简单纹理映射</div>
+      <div>https://ksgfk.github.io/2021/12/20/Nori番外-纹理映射/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ksgfk</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年12月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/07/15/CSharp-%E5%88%9B%E5%BB%BA%E9%99%84%E5%B8%A6%E5%A4%9A%E5%B9%B3%E5%8F%B0%E6%9C%AC%E6%9C%BA%E4%BB%A3%E7%A0%81%E7%9A%84NuGet%E5%8C%85/" title="[C#]创建附带多平台本机代码的NuGet包">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[C#]创建附带多平台本机代码的NuGet包</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/09/22/%E5%9B%BE%E5%BD%A2-%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%9D%90%E8%B4%A8/" title="[图形]实时渲染基于物理的材质">
+                        <span class="hidden-mobile">[图形]实时渲染基于物理的材质</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      沪ICP备2025108779号-1
+    </a>
+  </span>
+  
+</div>
+
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

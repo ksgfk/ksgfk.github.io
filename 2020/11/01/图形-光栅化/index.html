@@ -1,0 +1,797 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="图形学基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[图形]光栅化">
+<meta property="og:url" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/index.html">
+<meta property="og:site_name" content="ksgfk&#39;s blog">
+<meta property="og:description" content="图形学基础">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E5%B1%8F%E5%B9%95%E7%A9%BA%E9%97%B4%E5%AE%9A%E4%B9%89.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E8%A7%86%E5%8F%A3%E7%9F%A9%E9%98%B5.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E4%B8%89%E6%AC%A1%E5%8F%89%E4%B9%98%E5%88%A4%E6%96%AD%E5%83%8F%E7%B4%A0%E5%9C%A8%E4%B8%8D%E5%9C%A8%E4%B8%89%E8%A7%92%E5%BD%A2%E5%86%85.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E5%83%8F%E7%B4%A0%E7%A2%B0%E6%92%9E%E7%9B%92.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E5%83%8F%E7%B4%A0%E5%8C%96%E7%9A%84%E4%B8%89%E8%A7%92%E5%BD%A2.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E5%8E%9F%E7%89%88%E4%B8%89%E8%A7%92%E5%BD%A2.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E7%94%BB%E5%AE%B6%E7%AE%97%E6%B3%95%E7%9A%84%E5%B1%80%E9%99%90.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E6%B7%B1%E5%BA%A6%E7%BB%93%E6%9E%9C.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E6%B7%B1%E5%BA%A6%E6%B5%8B%E8%AF%95%E4%BC%AA%E4%BB%A3%E7%A0%81.png">
+<meta property="og:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/zbuffer%E7%AE%97%E6%B3%95%E5%9B%BE%E8%A7%A3.png">
+<meta property="article:published_time" content="2020-11-01T02:07:00.000Z">
+<meta property="article:modified_time" content="2022-02-08T07:51:25.691Z">
+<meta property="article:author" content="ksgfk">
+<meta property="article:tag" content="图形学">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ksgfk.github.io/2020/11/01/%E5%9B%BE%E5%BD%A2-%E5%85%89%E6%A0%85%E5%8C%96/%E5%B1%8F%E5%B9%95%E7%A9%BA%E9%97%B4%E5%AE%9A%E4%B9%89.png">
+  
+  
+  
+  <title>[图形]光栅化 - ksgfk&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ksgfk&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="[图形]光栅化"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-11-01 10:07" pubdate>
+          2020年11月1日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          13 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">[图形]光栅化</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>2022.2.8修订</p>
+</blockquote>
+<p>经过viewing  transformation的图元全都处于NDC归一化设备坐标中</p>
+<p>接下来要将正方体里的图元画在屏幕上</p>
+<h1>Screen 屏幕</h1>
+<p>什么是屏幕？</p>
+<ul>
+<li>是由像素组成的二维数组</li>
+<li>数组大小是屏幕的分辨率</li>
+<li>屏幕是光栅成像设备</li>
+</ul>
+<p>像素（Pixel）是什么？</p>
+<ul>
+<li>（picture element缩写）</li>
+<li>简单认为像素是一个一个的小方块，内部填充一种颜色</li>
+<li>像素颜色可以用RGB表示</li>
+</ul>
+<p><img src="%E5%B1%8F%E5%B9%95%E7%A9%BA%E9%97%B4%E5%AE%9A%E4%B9%89.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>什么是屏幕空间？</p>
+<ul>
+<li>左下角作为原点</li>
+<li>向右是+X</li>
+<li>向上是+Y</li>
+<li>像素坐标是整数</li>
+<li>像素中心在<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mn>0.5</mn><mo separator="true">,</mo><mi>y</mi><mo>+</mo><mn>0.5</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(x+0.5,y+0.5)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">0.5</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.5</span><span class="mclose">)</span></span></span></span></li>
+</ul>
+<h1>Viewport Transform 视口变换</h1>
+<p><img src="%E8%A7%86%E5%8F%A3%E7%9F%A9%E9%98%B5.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>视口变换做的事情很简单</p>
+<ul>
+<li>把NDC左下角移动到屏幕空间原点</li>
+<li>把NDC拉伸覆盖整个屏幕空间</li>
+</ul>
+<h1>Rasterization 光栅化</h1>
+<p>经过视口变换，屏幕空间中储存的还是连续的多边形，要将其显示在一格一格的像素上，就要将其离散化</p>
+<p>选择三角形作为基本图元</p>
+<ul>
+<li>
+<p>最基础的多边形</p>
+</li>
+<li>
+<p>任何其他多边形都可以被拆解为很多三角形</p>
+</li>
+<li>
+<p>三角形一定表示一个平面，而例如四边形可能会弯折</p>
+</li>
+<li>
+<p>三角形内部外部定义清晰</p>
+</li>
+<li>
+<p>三角形三个顶点属性确定后，三角形面上属性可以插值</p>
+</li>
+</ul>
+<h2 id="Sampling-采样">Sampling 采样</h2>
+<p>采样就是将函数离散化的过程</p>
+<p>最简单的光栅化方法就是：给定一个屏幕空间内的三角形，判断某个像素是否处于三角形内</p>
+<p>写成伪代码就是：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x = <span class="hljs-number">0</span>; x &lt; xmax; ++x) &#123;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> y = <span class="hljs-number">0</span>; y &lt; xmax; ++y) &#123;<br>    image[x][y] = <span class="hljs-built_in">inside</span>(tri, x + <span class="hljs-number">0.5</span>, y + <span class="hljs-number">0.5</span>);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>如果不在三角形内，<code>inside</code>函数会返回0，否则返回1</p>
+<p>那么如何判断像素中心是否处于三角形内呢？</p>
+<p><img src="%E4%B8%89%E6%AC%A1%E5%8F%89%E4%B9%98%E5%88%A4%E6%96%AD%E5%83%8F%E7%B4%A0%E5%9C%A8%E4%B8%8D%E5%9C%A8%E4%B8%89%E8%A7%92%E5%BD%A2%E5%86%85.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>用三角形三条边分别和像素中心叉乘，如果三个结果的方向大小都是正的或负的，则说明这个像素确实在三角形内。</p>
+<p>不过呢，万一这个像素中心点正好在三角形的边界上，怎么办？对于这类问题，在图形学中，要么不做处理，要么特殊处理。（这课里就不对它处理了233</p>
+<p>再看看刚刚的采样伪代码，我们对一个三角形光栅化的时候，把屏幕上所有像素点都测了一遍，事实上这没必要。</p>
+<p><img src="%E5%83%8F%E7%B4%A0%E7%A2%B0%E6%92%9E%E7%9B%92.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>三角形只可能存在于蓝色的像素内。所以我们可以先求出三角形的轴向包围盒（Axis Align Bounding Box），再对这个包围盒的范围进行光栅化</p>
+<h2 id="Antialiasing-反走样-抗锯齿">Antialiasing 反走样/抗锯齿</h2>
+<p>一个三角形是一个连续的函数，给定屏幕中任意一个点，我们可以测试这个点是不是在三角形内部。关于三角形，我们可以认为它的颜色是均匀的，所以每个在三角形内的像素，我们都可以把它们涂成三角形的颜色。但是如果只是这样做，结果会得到一个类似三角形的图案。<br>
+<img src="%E5%83%8F%E7%B4%A0%E5%8C%96%E7%9A%84%E4%B8%89%E8%A7%92%E5%BD%A2.png" srcset="/img/loading.gif" lazyload alt=""><img src="%E5%8E%9F%E7%89%88%E4%B8%89%E8%A7%92%E5%BD%A2.png" srcset="/img/loading.gif" lazyload alt=""><br>
+抗锯齿就是为了解决这个原版和光栅化后的图形不一致的问题。</p>
+<p>（之后的关于抗锯齿都没看懂，反正就是把原图模糊一下（低通滤波，去掉高频信息，实际操作就是取该点周围点的颜色平均一下）再采样，锯齿就不明显了，大概原理是啥，用到的知识，频域啊时域啊，都是信号处理的，搞不懂，留个坑）</p>
+<h2 id="Z-Buffer-深度缓冲">Z-Buffer 深度缓冲</h2>
+<blockquote>
+<p>实际场景中，空间里会有很多很多三角形，它们可能会互相遮挡。如何解决互相遮挡的问题需要深度测试。</p>
+</blockquote>
+<p>最古老的解决这个问题的算法是画家算法（Painter Algorithm），先画远处的物体再画近处的，重叠部分直接覆盖，算法复杂度O(nlogn)，因为要对所有三角形排序。基本可以保证遮挡顺序是对的。但是在某些特殊情况下<br>
+<img src="%E7%94%BB%E5%AE%B6%E7%AE%97%E6%B3%95%E7%9A%84%E5%B1%80%E9%99%90.png" srcset="/img/loading.gif" lazyload alt=""><br>
+不管哪个三角形先画都有问题</p>
+<p>因为空间中的三角形不好排先后顺序，所以深度缓冲记录的是，每个像素所在的几何图形最浅的深度</p>
+<p>最终生成的有两张图像，一个是最终结果（frame buffer）,另一个是任何一个像素对应的深度（depth buffer）</p>
+<blockquote>
+<p>为了简化计算，我们认为相机到顶点的距离就是深度，距离永远是正数，而且越小表示离相机越近，否则越远</p>
+</blockquote>
+<blockquote>
+<p>之前说过我们的相机放在原点，并且向负z方向看过去，这样的话所有z都是负数，所以z绝对值越小离相机越近，绝对值越大离相机越远</p>
+</blockquote>
+<p><img src="%E6%B7%B1%E5%BA%A6%E7%BB%93%E6%9E%9C.png" srcset="/img/loading.gif" lazyload alt=""><br>
+深度图里，越黑的地方离相机越近</p>
+<p><img src="%E6%B7%B1%E5%BA%A6%E6%B5%8B%E8%AF%95%E4%BC%AA%E4%BB%A3%E7%A0%81.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="zbuffer%E7%AE%97%E6%B3%95%E5%9B%BE%E8%A7%A3.png" srcset="/img/loading.gif" lazyload alt=""><br>
+这张图可以很清晰看出深度测试如何工作，更近的像素会覆盖掉更远的像素</p>
+<p>算法大致过程：</p>
+<ul>
+<li>将深度缓冲初始值设为无限大</li>
+<li>遍历所有三角形，在对三角形光栅化后，遍历所有光栅化后的像素</li>
+<li>如果像素的深度小于buffer中对应位置像素的深度，就替换掉</li>
+</ul>
+<p>算法复杂度：O(n)，n是三角形数量（只针对深度缓冲算法，不考虑光栅化）。能做到线性时间复杂度是因为实际上并没有对三角形进行排序，它和三角形在空间中的顺序（从摄像机到三角形）没有关系。<em>两个三角形的某些像素深度相同的情况另说</em></p>
+<p>（Zbuffer处理不了透明物体，需要特殊处理0.0</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%AC%94%E8%AE%B0/" class="category-chain-item">笔记</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%AC%94%E8%AE%B0/GAMES101/" class="category-chain-item">GAMES101</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[图形]光栅化</div>
+      <div>https://ksgfk.github.io/2020/11/01/图形-光栅化/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ksgfk</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年11月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/11/10/%E5%9B%BE%E5%BD%A2-%E7%9D%80%E8%89%B2/" title="[图形]着色">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[图形]着色</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/09/13/%E5%9B%BE%E5%BD%A2-%E4%B8%89%E7%BB%B4%E5%8F%98%E6%8D%A2/" title="[图形]三维变换">
+                        <span class="hidden-mobile">[图形]三维变换</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      沪ICP备2025108779号-1
+    </a>
+  </span>
+  
+</div>
+
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
