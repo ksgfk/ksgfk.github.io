@@ -293,7 +293,7 @@
                 <h1>Overview</h1>
 <h2 id="Dependency-Injection">Dependency Injection</h2>
 <p>依赖注入是实现控制反转的方式之一。DI主要负责管理对象的生命周期，从构造到销毁。</p>
-<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C#"><span class="hljs-keyword">var</span> builder = WebApplication.CreateBuilder(args);<br><span class="hljs-comment">// 服务就在这里注册</span><br>builder.Services.AddRazorPages(); <span class="hljs-comment">// 使用扩展方法注册了razor page引擎所需的所有类型</span><br><span class="hljs-keyword">var</span> app = builder.Build();<br></code></pre></td></tr></table></figure>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C#"><span class="hljs-keyword">var</span> builder = WebApplication.CreateBuilder(<span class="hljs-keyword">args</span>);<br><span class="hljs-comment">// 服务就在这里注册</span><br>builder.Services.AddRazorPages(); <span class="hljs-comment">// 使用扩展方法注册了razor page引擎所需的所有类型</span><br><span class="hljs-keyword">var</span> app = builder.Build();<br></code></pre></td></tr></table></figure>
 <h3 id="Singleton">Singleton</h3>
 <p><code>builder.Services.AddSingleton()</code></p>
 <p>注入到容器中的单例对象在整个应用生命周期内都可以访问，而且只会有一个</p>
@@ -578,17 +578,6 @@
     </div>
   
   
-  
-    <!-- 备案信息 ICP for China -->
-    <div class="beian">
-  <span>
-    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-      沪ICP备2025108779号-1
-    </a>
-  </span>
-  
-</div>
-
   
 </div>
 

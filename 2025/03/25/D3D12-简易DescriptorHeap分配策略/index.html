@@ -1,0 +1,757 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ksgfk">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="标题怎么取的和大作业似的（ 用语 这里写一下一些术语的对照，有些英文单词对应中文不一定准确（  描述符：Descriptor 描述符堆：Descriptor Heap 资源：Resource 分配器：Allocator 奇异模板递归模式：Curiously Recurring Template Pattern（CRTP）  问题 DX12龙书的示例代码是要多少描述符就开多大的描述符堆，如果想稍微封">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[D3D12]简易DescriptorHeap分配策略">
+<meta property="og:url" content="https://ksgfk.github.io/2025/03/25/D3D12-%E7%AE%80%E6%98%93DescriptorHeap%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/index.html">
+<meta property="og:site_name" content="ksgfk的编程生涯">
+<meta property="og:description" content="标题怎么取的和大作业似的（ 用语 这里写一下一些术语的对照，有些英文单词对应中文不一定准确（  描述符：Descriptor 描述符堆：Descriptor Heap 资源：Resource 分配器：Allocator 奇异模板递归模式：Curiously Recurring Template Pattern（CRTP）  问题 DX12龙书的示例代码是要多少描述符就开多大的描述符堆，如果想稍微封">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-25T13:57:00.000Z">
+<meta property="article:modified_time" content="2025-03-26T15:36:54.605Z">
+<meta property="article:author" content="ksgfk">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="D3D12">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>[D3D12]简易DescriptorHeap分配策略 - ksgfk的编程生涯</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ksgfk.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ksgfk&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="[D3D12]简易DescriptorHeap分配策略"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-25 21:57" pubdate>
+          2025年3月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          3.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          31 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">[D3D12]简易DescriptorHeap分配策略</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p><em>标题怎么取的和大作业似的（</em></p>
+<h1>用语</h1>
+<p>这里写一下一些术语的对照，有些英文单词对应中文不一定准确（</p>
+<ul>
+<li>描述符：Descriptor</li>
+<li>描述符堆：Descriptor Heap</li>
+<li>资源：Resource</li>
+<li>分配器：Allocator</li>
+<li>奇异模板递归模式：Curiously Recurring Template Pattern（CRTP）</li>
+</ul>
+<h1>问题</h1>
+<p>DX12龙书的示例代码是要多少描述符就开多大的描述符堆，如果想稍微封装一下裸API基本上不能采用这样的策略，谁知道运行时有多少资源需要创建描述符呢，甚至一个资源可以创建多个描述符（</p>
+<p>对于shader可见的描述符堆来说，由于D3D12某些奇妙的设计或者限制，一次只能绑定两个，且只能是<code>CBV_SRV_UAV</code>和<code>SAMPLER</code>各一个。加上官方文档说，录制渲染命令时更改描述符堆开销巨大（<a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows/win32/direct3d12/descriptor-heaps-overview#switching-heaps">链接</a>），因此在查阅了许多开源RHI、开源引擎源码后发现，大家不约而同的选择了全局开两个很大的<code>ID3D12DescriptorHeap</code>对象，在cmd list开始录制命令时绑定，中途不更换绑定。</p>
+<p>对于shader不可见的描述符堆，按理说是可以创建多个了，但是也不能采取，在需要时就直接创建一个新<code>ID3D12DescriptorHeap</code>对象这种做法，除了创建和销毁时的开销，大量对象应该也会导致内存碎片化。（其实也不是不行，只要能接受，和自己和解233）</p>
+<p>总之为了让描述符管理看起来更优雅一些，我们需要一种或多种策略组合来管理各种描述符堆。</p>
+<h1>设计</h1>
+<p><em>以下设计实现未经过检验，想一出是一出</em></p>
+<p>如果我们仔细观察D3D12的描述符堆的性质，会发现</p>
+<ul>
+<li>许多性质、大小完全一致的描述符组成一个描述符堆</li>
+<li>可以通过数字索引来随机访问</li>
+</ul>
+<p>好像有点熟悉了，我们向操作系统申请的一块内存不也具有这些性质嘛，由一堆byte组成且可以通过数字索引随机访问（有点抽象但别在意）。</p>
+<p>那目前已有的大量内存分配解决方案，是不是也可以套到管理描述符堆上。笔者认为完全可行。</p>
+<h2 id="分配器概念">分配器概念</h2>
+<p>因此首先我们需要约束一下“分配器”这个概念的适用范围。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">TAllocator</span>, <span class="hljs-keyword">class</span> <span class="hljs-title class_">TAllocation</span>&gt;<br><span class="hljs-keyword">concept</span> is_allocator = <span class="hljs-built_in">requires</span>(TAllocator alloc, <span class="hljs-type">size_t</span> size, TAllocation allocation) &#123;<br>    &#123; alloc.<span class="hljs-built_in">Allocate</span>(size) &#125; -&gt; std::same_as&lt;std::optional&lt;TAllocation&gt;&gt;;<br>    &#123; alloc.<span class="hljs-built_in">Destroy</span>(allocation) &#125; -&gt; std::same_as&lt;<span class="hljs-type">void</span>&gt;;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>不难看出，分配器具有两个函数</p>
+<p><code>Allocate</code>输入一个<code>size_t</code>类型的长度，返回分配结果，<code>std::optional</code>来表达分配成功或失败（C++26就能用std::result了）,分配的结果是一个抽象类型<code>TAllocation</code>，可以是任意类型，非常自由。我们不需要内存对齐，因此不存在align参数。</p>
+<p><code>Destroy</code>输入之前存在的分配结果，用于回收已被使用的区域。显然，传入参数不可以是其他分配器，或者自己造的结果。</p>
+<p>有了概念，接下来就是一系列具体算法实现了。</p>
+<h2 id="伙伴算法">伙伴算法</h2>
+<p>这个算法感觉都已经被介绍烂了，CSAPP中也有对其的具体介绍，此处就偷个懒省略掉介绍。</p>
+<p>为什么要用这个算法来分配描述符堆？</p>
+<p>伙伴算法用来记录空闲链表的是一颗完全二叉树（如果长度是2^n那应该是满二叉树），实际实现里是个数组，节点的合并和分裂只修改数组元素值，0内存分配，理论上会非常快速。</p>
+<p>笔者会将它用在分配shader不可见的描述符堆上，这个使用使用场景下描述符基本是一个一个分配的，如果真用链表法串起来会浪费大量内存作为链表节点，但对于伙伴算法来说分配这种大小的块不仅速度很快，大部分时候甚至0描述符浪费，少量需要一次分配多个描述符的情况也不会浪费太多空间。</p>
+<h2 id="空闲链表">空闲链表</h2>
+<p>伙伴算法是一种特殊的空闲链表法，在特殊场景下表现优异，但我们还是需要一种更通用的办法来平衡大部分使用场景。</p>
+<p>CSAPP里详细论述了显式空闲链表，笔者还没读完，lab也没做，只大致参考了下思路。</p>
+<p>普通内存分配器会在分配时多给些空间，在分配结果的头部藏数据，目前应用场景下就没条件用这种手段了，分配器不太好暴露太多细节出去。</p>
+<p>与CSAPP lab的要求不同，笔者希望使用双向链表将所有块，无论空闲还是占用，全都串起来，以便debug时追踪分配状态。</p>
+<p>为了快速索引所有块，使用基于hash表的unordered_map，顺便块的生命周期也由它持有，避免链表的递归释放。增删性能不一定高，但应该会比遍历链表快一些（当然也更占空间）（内存分配器分配时会分配更多内存，听起来有点怪）</p>
+<p>接着为了索引适合大小的块，使用multimap记录所有空闲块，key表示剩余大小，multimap应该是红黑树实现也不会慢。</p>
+<p>定义链表节点。链表节点在64位下要占40字节，有没有办法压缩到32字节呢</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">enum class</span> <span class="hljs-title class_">NodeState</span> &#123;<br>    Free,<br>    Used<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">LinkNode</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">LinkNode</span>(<span class="hljs-type">size_t</span> start, <span class="hljs-type">size_t</span> length) <span class="hljs-keyword">noexcept</span>;<br><br>    <span class="hljs-type">size_t</span> _start;<br>    <span class="hljs-type">size_t</span> _length;<br>    FreeListAllocator::LinkNode* _prev;<br>    FreeListAllocator::LinkNode* _next;<br>    NodeState _state;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>定义空闲链表分配器的基本结构</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">FreeListAllocator</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">FreeListAllocator</span><span class="hljs-params">(<span class="hljs-type">size_t</span> capacity)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br>    <span class="hljs-function">std::optional&lt;<span class="hljs-type">size_t</span>&gt; <span class="hljs-title">Allocate</span><span class="hljs-params">(<span class="hljs-type">size_t</span> size)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Destroy</span><span class="hljs-params">(<span class="hljs-type">size_t</span> offset)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-comment">// 所有节点的索引兼容器</span><br>    radray::unordered_map&lt;<span class="hljs-type">size_t</span>, radray::unique_ptr&lt;FreeListAllocator::LinkNode&gt;&gt; _nodes;<br>    <span class="hljs-comment">// 快速索引适合的剩余空间的节点</span><br>    radray::multimap&lt;<span class="hljs-type">size_t</span>, FreeListAllocator::LinkNode*&gt; _sizeQuery;<br>    <span class="hljs-type">size_t</span> _capacity;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>分配时非常简单，只需要找到适合大小的空闲节点，将节点分裂并标记正在使用就行了。如果没有合适的空闲节点则分配失败。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function">std::optional&lt;<span class="hljs-type">size_t</span>&gt; <span class="hljs-title">FreeListAllocator::Allocate</span><span class="hljs-params">(<span class="hljs-type">size_t</span> size)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (size == <span class="hljs-number">0</span> || size &gt; _capacity) &#123;<br>        <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>    &#125;<br>    <span class="hljs-comment">// 遍历适合大小的节点</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> iter = _sizeQuery.<span class="hljs-built_in">lower_bound</span>(size); iter != _sizeQuery.<span class="hljs-built_in">end</span>(); iter++) &#123;<br>        FreeListAllocator::LinkNode* node = iter-&gt;second;<br>        <span class="hljs-keyword">if</span> (node-&gt;_length == size) &#123; <span class="hljs-comment">// 如果正巧节点大小和所需一致, 只需要标记被使用</span><br>            _sizeQuery.<span class="hljs-built_in">erase</span>(iter); <span class="hljs-comment">// 别忘了从索引中去除</span><br>            node-&gt;_state = FreeListAllocator::NodeState::Used;<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">make_optional</span>(node-&gt;_start);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-built_in">RADRAY_ASSERT</span>(node-&gt;_length &gt; size);<br>            <span class="hljs-comment">// 分裂后新节点起始和长度</span><br>            <span class="hljs-type">size_t</span> newStart = node-&gt;_start + size;<br>            <span class="hljs-type">size_t</span> newLength = node-&gt;_length - size;<br>            <span class="hljs-comment">// 分配新节点</span><br>            <span class="hljs-keyword">auto</span> [newIter, isInsert] = _nodes.<span class="hljs-built_in">emplace</span>(<br>                newStart,<br>                radray::<span class="hljs-built_in">make_unique</span>&lt;FreeListAllocator::LinkNode&gt;(newStart, newLength));<br>            <span class="hljs-built_in">RADRAY_ASSERT</span>(isInsert);<br>            FreeListAllocator::LinkNode* newNode = newIter-&gt;second.<span class="hljs-built_in">get</span>();<br>            node-&gt;_state = FreeListAllocator::NodeState::Used;<br>            node-&gt;_length = size;<br>            newNode-&gt;_state = FreeListAllocator::NodeState::Free;<br>            <span class="hljs-comment">// 连接链表</span><br>            newNode-&gt;_prev = node;<br>            newNode-&gt;_next = node-&gt;_next;<br>            node-&gt;_next = newNode;<br>            <span class="hljs-keyword">if</span> (newNode-&gt;_next != <span class="hljs-literal">nullptr</span>) &#123;<br>                newNode-&gt;_next-&gt;_prev = newNode;<br>            &#125;<br>            _sizeQuery.<span class="hljs-built_in">erase</span>(iter); <span class="hljs-comment">// 别忘记更新节点索引</span><br>            _sizeQuery.<span class="hljs-built_in">emplace</span>(newNode-&gt;_length, newNode);<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">make_optional</span>(node-&gt;_start);<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>回收内存要考虑的就多一些了，要合并邻近空闲的节点以便下次分配时使用，减少碎片率</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">FreeListAllocator::Destroy</span><span class="hljs-params">(<span class="hljs-type">size_t</span> offset)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> iter = _nodes.<span class="hljs-built_in">find</span>(offset);<br>    <span class="hljs-keyword">if</span> (iter == _nodes.<span class="hljs-built_in">end</span>()) &#123;<br>        <span class="hljs-built_in">RADRAY_ABORT</span>(<span class="hljs-string">&quot;FreeListAllocator::Destroy invalid offset &#123;&#125;&quot;</span>, offset);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    FreeListAllocator::LinkNode* node = iter-&gt;second.<span class="hljs-built_in">get</span>();<br>    <span class="hljs-keyword">if</span> (node-&gt;_state == FreeListAllocator::NodeState::Free) &#123;<br>        <span class="hljs-built_in">RADRAY_ABORT</span>(<span class="hljs-string">&quot;FreeListAllocator::Destroy invalid offset &#123;&#125;&quot;</span>, offset);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-comment">// 标记节点空闲</span><br>    node-&gt;_state = FreeListAllocator::NodeState::Free;<br>    <span class="hljs-comment">// 向前找临近的空闲节点</span><br>    FreeListAllocator::LinkNode* startFreePtr = node;<br>    <span class="hljs-keyword">while</span> (startFreePtr-&gt;_prev != <span class="hljs-literal">nullptr</span> &amp;&amp; startFreePtr-&gt;_prev-&gt;_state == FreeListAllocator::NodeState::Free) &#123;<br>        startFreePtr = startFreePtr-&gt;_prev;<br>    &#125;<br>    <span class="hljs-comment">// 向后找临近的空闲节点</span><br>    FreeListAllocator::LinkNode* endFreePtr = node;<br>    <span class="hljs-keyword">while</span> (endFreePtr-&gt;_next != <span class="hljs-literal">nullptr</span> &amp;&amp; endFreePtr-&gt;_next-&gt;_state == FreeListAllocator::NodeState::Free) &#123;<br>        endFreePtr = endFreePtr-&gt;_next;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (startFreePtr == endFreePtr) &#123; <span class="hljs-comment">// 前后没有空闲节点, 更新一下索引就可以了</span><br>        _sizeQuery.<span class="hljs-built_in">emplace</span>(node-&gt;_length, node);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    FreeListAllocator::LinkNode* endFreeNext = endFreePtr-&gt;_next;<br>    <span class="hljs-type">size_t</span> newSize = <span class="hljs-number">0</span>;<br>    <span class="hljs-comment">// 遍历所有临近空闲节点</span><br>    <span class="hljs-keyword">for</span> (FreeListAllocator::LinkNode* i = startFreePtr; i != endFreeNext;) &#123;<br>        newSize += i-&gt;_length;<br>        <span class="hljs-comment">// 移除老空闲节点索引</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> j = _sizeQuery.<span class="hljs-built_in">begin</span>(); j != _sizeQuery.<span class="hljs-built_in">end</span>(); j++) &#123;<br>            <span class="hljs-keyword">if</span> (j-&gt;second == i) &#123;<br>                _sizeQuery.<span class="hljs-built_in">erase</span>(j);<br>                <span class="hljs-keyword">break</span>;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">if</span> (i == startFreePtr) &#123; <span class="hljs-comment">// 留下第一个空闲节点, 作为合并后的节点</span><br>            i = i-&gt;_next;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">// 释放其他空闲节点</span><br>            <span class="hljs-keyword">auto</span> key = i-&gt;_start;<br>            i = i-&gt;_next;<br>            _nodes.<span class="hljs-built_in">erase</span>(key);<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">// 更新合并后节点</span><br>    startFreePtr-&gt;_length = newSize;<br>    startFreePtr-&gt;_next = endFreeNext;<br>    <span class="hljs-keyword">if</span> (endFreeNext != <span class="hljs-literal">nullptr</span>) &#123;<br>        endFreeNext-&gt;_prev = startFreePtr;<br>    &#125;<br>    <span class="hljs-comment">// 别忘了索引</span><br>    _sizeQuery.<span class="hljs-built_in">emplace</span>(startFreePtr-&gt;_length, startFreePtr);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="动态块">动态块</h2>
+<p>尽管上面我们已经实现了两种分配算法，但它们都建立在一块长度固定的块上，分配过多空间就会Out of Memory，简直是恶魔的低语。</p>
+<p>shader不可见的描述符堆是可以创建多个的，我们可以创建多个描述符堆串起来，避免空间不足导致的分配失败。很类似内存池的概念。</p>
+<p>因此需要一种全新的分配器，它能创建一个一个的块，每个块内拥有一个独立分配器（套娃）。它能按需创建和卸载抽象的内存。</p>
+<p>具体实现与空闲链表类似，依然使用unordered_map+multimap的组合来快速索引可能可以分配空间的块，且为了让分配器能够释放掉多余不需要的内存，我们再引入一个阈值，表示最多存在多少个完全没有被使用过的块。</p>
+<p>根据需求，我们可以借助模板实现分配器套娃</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">THeap</span>&gt;<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">BlockAllocation</span> &#123;<br>    THeap* Heap;<br>    <span class="hljs-type">size_t</span> Start;<br>    <span class="hljs-type">size_t</span> Length;<br>&#125;;<br><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">TSubAlloc</span>, <span class="hljs-keyword">class</span> <span class="hljs-title class_">THeap</span>, <span class="hljs-keyword">class</span> <span class="hljs-title class_">TDerived</span>&gt;<br><span class="hljs-keyword">requires</span> is_allocator&lt;TSubAlloc, <span class="hljs-type">size_t</span>&gt;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">BlockAllocator</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">BlockAllocator</span>(<br>        <span class="hljs-type">size_t</span> basicSize,<br>        <span class="hljs-type">size_t</span> destroyThreshold) <span class="hljs-keyword">noexcept</span><br>        : _basicSize(basicSize),<br>          _destroyThreshold(destroyThreshold) &#123;&#125;<br><br>    <span class="hljs-keyword">virtual</span> ~<span class="hljs-built_in">BlockAllocator</span>() <span class="hljs-keyword">noexcept</span> = <span class="hljs-keyword">default</span>;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-keyword">class</span> <span class="hljs-title class_">Block</span> &#123;<br>    <span class="hljs-keyword">public</span>:<br>        <span class="hljs-built_in">Block</span>(<br>            radray::unique_ptr&lt;THeap&gt; heap,<br>            TSubAlloc&amp;&amp; allocator,<br>            <span class="hljs-type">size_t</span> heapSize) <span class="hljs-keyword">noexcept</span><br>            : _freeSize(heapSize),<br>              _initSize(heapSize),<br>              _heap(std::<span class="hljs-built_in">move</span>(heap)),<br>              _allocator(std::<span class="hljs-built_in">move</span>(std::forward&lt;TSubAlloc&gt;(allocator))) &#123;&#125;<br><br>        <span class="hljs-type">size_t</span> _freeSize;<br>        <span class="hljs-type">size_t</span> _initSize;<br>        radray::unique_ptr&lt;THeap&gt; _heap;<br>        TSubAlloc _allocator;<br>    &#125;;<br><br>    radray::unordered_map&lt;THeap*, radray::unique_ptr&lt;BlockAllocator::Block&gt;&gt; _blocks;<br>    radray::multimap&lt;<span class="hljs-type">size_t</span>, BlockAllocator::Block*&gt; _sizeQuery;<br>    radray::unordered_set&lt;BlockAllocator::Block*&gt; _unused;<br>    <span class="hljs-type">size_t</span> _basicSize;<br>    <span class="hljs-type">size_t</span> _destroyThreshold;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<ul>
+<li><code>BlockAllocation&lt;T&gt;</code>表示分配结果，里面存了分配的内存块所在的抽象内存</li>
+<li><code>TSubAlloc</code>表示套娃的分配器类型，使用之前定义的概念约束类型</li>
+<li><code>THeap</code>无约束，表示块持有的抽象内存</li>
+<li><code>TDerived</code>用于奇异模板递归模式获取子类</li>
+</ul>
+<p>有了这么多辅助结构，分配过程应该是水到渠成。</p>
+<p>先去找所有适合大小的块能不能分配，没有适合的大小或者全都无法分配，则只能创建新块。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><code class="hljs C++">std::optional&lt;BlockAllocation&lt;THeap&gt;&gt; <span class="hljs-built_in">Allocate</span>(<span class="hljs-type">size_t</span> size) <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-keyword">if</span> (size == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>    &#125;<br>    <span class="hljs-comment">// 去所有可能空闲的块里找还能分配的块</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> iter = _sizeQuery.<span class="hljs-built_in">lower_bound</span>(size); iter != _sizeQuery.<span class="hljs-built_in">end</span>(); iter++) &#123;<br>        BlockAllocator::Block* block = iter-&gt;second;<br>        std::optional&lt;<span class="hljs-type">size_t</span>&gt; start = block-&gt;_allocator.<span class="hljs-built_in">Allocate</span>(size);<br>        <span class="hljs-keyword">if</span> (start.<span class="hljs-built_in">has_value</span>()) &#123; <span class="hljs-comment">// 分配成功</span><br>            _sizeQuery.<span class="hljs-built_in">erase</span>(iter);<br>            block-&gt;_freeSize -= size;<br>            <span class="hljs-built_in">CheckBlockState</span>(block);<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">make_optional</span>(BlockAllocation&lt;THeap&gt;&#123;block-&gt;_heap.<span class="hljs-built_in">get</span>(), start.<span class="hljs-built_in">value</span>(), size&#125;);<br>        &#125;<br>    &#125;<br>    &#123;<br>        <span class="hljs-comment">// 没有能分配的块了，只能创建新块</span><br>        <span class="hljs-type">size_t</span> needSize = std::<span class="hljs-built_in">max</span>(size, _basicSize);<br>        radray::unique_ptr&lt;BlockAllocator::Block&gt; newBlock = radray::<span class="hljs-built_in">make_unique</span>&lt;BlockAllocator::Block&gt;(<br>            <span class="hljs-built_in">static_cast</span>&lt;TDerived*&gt;(<span class="hljs-keyword">this</span>)-&gt;<span class="hljs-built_in">CreateHeap</span>(needSize),<br>            <span class="hljs-built_in">static_cast</span>&lt;TDerived*&gt;(<span class="hljs-keyword">this</span>)-&gt;<span class="hljs-built_in">CreateSubAllocator</span>(needSize),<br>            needSize);<br>        BlockAllocator::Block* blockPtr = newBlock.<span class="hljs-built_in">get</span>();<br>        <span class="hljs-keyword">auto</span> [newIter, isInsert] = _blocks.<span class="hljs-built_in">emplace</span>(blockPtr-&gt;_heap.<span class="hljs-built_in">get</span>(), std::<span class="hljs-built_in">move</span>(newBlock));<br>        <span class="hljs-built_in">RADRAY_ASSERT</span>(isInsert);<br>        <span class="hljs-type">size_t</span> newStart = blockPtr-&gt;_allocator.<span class="hljs-built_in">Allocate</span>(size).<span class="hljs-built_in">value</span>(); <span class="hljs-comment">// 理论上一定分配成功，直接unwrap</span><br>        blockPtr-&gt;_freeSize -= size;<br>        <span class="hljs-built_in">CheckBlockState</span>(blockPtr);<br>        <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">make_optional</span>(BlockAllocation&lt;THeap&gt;&#123;blockPtr-&gt;_heap.<span class="hljs-built_in">get</span>(), newStart, size&#125;);<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 检查块的状态, 是不是应该销毁</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">CheckBlockState</span><span class="hljs-params">(BlockAllocator::Block* block)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>    <span class="hljs-type">bool</span> isBlockDestroyed = <span class="hljs-literal">false</span>;<br>    <span class="hljs-keyword">if</span> (block-&gt;_freeSize == block-&gt;_initSize) &#123; <span class="hljs-comment">// 这个块没有分配任何空间出去</span><br>        _unused.<span class="hljs-built_in">emplace</span>(block);<br>        <span class="hljs-keyword">while</span> (_unused.<span class="hljs-built_in">size</span>() &gt; _destroyThreshold) &#123; <span class="hljs-comment">// 没有分配任何空间的块超过阈值</span><br>            <span class="hljs-keyword">auto</span> selectIter = _unused.<span class="hljs-built_in">begin</span>(); <span class="hljs-comment">// 取哪个都一样, 就取第一个了</span><br>            BlockAllocator::Block* selectBlock = *selectIter;<br>            <span class="hljs-keyword">if</span> (selectBlock == block) &#123;<br>                isBlockDestroyed = <span class="hljs-literal">true</span>;<br>            &#125;<br>            _unused.<span class="hljs-built_in">erase</span>(selectIter);<br>            <span class="hljs-comment">// 别忘了删除空闲大小的索引</span><br>            <span class="hljs-keyword">auto</span> [qBegin, qEnd] = _sizeQuery.<span class="hljs-built_in">equal_range</span>(selectBlock-&gt;_freeSize);<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> it = qBegin; it != qEnd; it++) &#123;<br>                <span class="hljs-keyword">if</span> (it-&gt;second == selectBlock) &#123;<br>                    _sizeQuery.<span class="hljs-built_in">erase</span>(it);<br>                    <span class="hljs-keyword">break</span>;<br>                &#125;<br>            &#125;<br>            <span class="hljs-comment">// 销毁</span><br>            _blocks.<span class="hljs-built_in">erase</span>(selectBlock-&gt;_heap.<span class="hljs-built_in">get</span>());<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        _unused.<span class="hljs-built_in">erase</span>(block);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (block-&gt;_freeSize &gt; <span class="hljs-number">0</span> &amp;&amp; !isBlockDestroyed) &#123;<br>        _sizeQuery.<span class="hljs-built_in">emplace</span>(block-&gt;_freeSize, block);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里用到了奇异模板递归模式，从子类中调用<code>CreateHeap</code>和<code>CreateSubAllocator</code>来创建新内存、分配器。这两个函数签名必须是</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function">radray::unique_ptr&lt;THeap&gt; <span class="hljs-title">CreateHeap</span><span class="hljs-params">(<span class="hljs-type">size_t</span> size)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br><span class="hljs-function">TSubAlloc <span class="hljs-title">CreateSubAllocator</span><span class="hljs-params">(<span class="hljs-type">size_t</span> size)</span> <span class="hljs-keyword">noexcept</span></span>;<br></code></pre></td></tr></table></figure>
+<p>删除时只需要修改下块的索引，没什么难度</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Destroy</span><span class="hljs-params">(BlockAllocation&lt;THeap&gt; allocation)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> iter = _blocks.<span class="hljs-built_in">find</span>(allocation.Heap);<br>    <span class="hljs-built_in">RADRAY_ASSERT</span>(iter != _blocks.<span class="hljs-built_in">end</span>());<br>    <span class="hljs-comment">// 根据分配结果拿到对应块</span><br>    BlockAllocator::Block* block = iter-&gt;second.<span class="hljs-built_in">get</span>();<br>    block-&gt;_allocator.<span class="hljs-built_in">Destroy</span>(allocation.Start);<br>    <span class="hljs-comment">// 重建索引</span><br>    <span class="hljs-keyword">auto</span> [qBegin, qEnd] = _sizeQuery.<span class="hljs-built_in">equal_range</span>(block-&gt;_freeSize);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> it = qBegin; it != qEnd; it++) &#123;<br>        <span class="hljs-keyword">if</span> (it-&gt;second == block) &#123;<br>            _sizeQuery.<span class="hljs-built_in">erase</span>(it);<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>    block-&gt;_freeSize += allocation.Length;<br>    <span class="hljs-built_in">CheckBlockState</span>(block);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="ID3D12DescriptorHeap-分配器">ID3D12DescriptorHeap 分配器</h2>
+<p>有了这三种分配器，再来看描述符堆的分配就简单多了，将分配工作全都代理出去就完事了。</p>
+<p>我们可以简单封一个描述符堆的类</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">DescriptorHeap</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">DescriptorHeap</span>(<br>        ID3D12Device* device,<br>        D3D12_DESCRIPTOR_HEAP_DESC desc) <span class="hljs-keyword">noexcept</span>;<br><br>    <span class="hljs-function">D3D12_GPU_DESCRIPTOR_HANDLE <span class="hljs-title">HandleGpu</span><span class="hljs-params">(UINT index)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span></span>;<br>    <span class="hljs-function">D3D12_CPU_DESCRIPTOR_HANDLE <span class="hljs-title">HandleCpu</span><span class="hljs-params">(UINT index)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span></span>;<br><br><span class="hljs-keyword">private</span>:<br>    ID3D12Device* _device;<br>    ComPtr&lt;ID3D12DescriptorHeap&gt; _heap;<br>    D3D12_DESCRIPTOR_HEAP_DESC _desc;<br>    D3D12_CPU_DESCRIPTOR_HANDLE _cpuStart;<br>    D3D12_GPU_DESCRIPTOR_HANDLE _gpuStart;<br>    UINT _incrementSize;<br>&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">DescriptorHeapView</span> &#123;<br>    DescriptorHeap* Heap;<br>    UINT Start;<br>    UINT Length;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>然后根据描述符堆是否对shader可见，分成两种分配器</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">CpuDescriptorAllocatorImpl</span> <span class="hljs-keyword">final</span> : <span class="hljs-keyword">public</span> BlockAllocator&lt;BuddyAllocator, DescriptorHeap, CpuDescriptorAllocatorImpl&gt; &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">CpuDescriptorAllocatorImpl</span>(<br>        ID3D12Device* device,<br>        D3D12_DESCRIPTOR_HEAP_TYPE type,<br>        UINT basicSize) <span class="hljs-keyword">noexcept</span>;<br>    ~<span class="hljs-built_in">CpuDescriptorAllocatorImpl</span>() <span class="hljs-keyword">noexcept</span> <span class="hljs-keyword">override</span> = <span class="hljs-keyword">default</span>;<br><br>    <span class="hljs-function">radray::unique_ptr&lt;DescriptorHeap&gt; <span class="hljs-title">CreateHeap</span><span class="hljs-params">(<span class="hljs-type">size_t</span> size)</span> <span class="hljs-keyword">noexcept</span></span>;<br>    <span class="hljs-function">BuddyAllocator <span class="hljs-title">CreateSubAllocator</span><span class="hljs-params">(<span class="hljs-type">size_t</span> size)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br><span class="hljs-keyword">private</span>:<br>    ID3D12Device* _device;<br>    D3D12_DESCRIPTOR_HEAP_TYPE _type;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">CpuDescriptorAllocator</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">CpuDescriptorAllocator</span>(<br>        ID3D12Device* device,<br>        D3D12_DESCRIPTOR_HEAP_TYPE type,<br>        UINT basicSize) <span class="hljs-keyword">noexcept</span>;<br><br>    <span class="hljs-function">std::optional&lt;DescriptorHeapView&gt; <span class="hljs-title">Allocate</span><span class="hljs-params">(UINT count)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Destroy</span><span class="hljs-params">(DescriptorHeapView view)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br><span class="hljs-keyword">private</span>:<br>    CpuDescriptorAllocatorImpl _impl;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>shader不可见分配器这里稍微套娃了一下，把实现代理出去将<code>BlockAllocator</code>分配结果的<code>size_t</code>强制转成<code>UINT</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">GpuDescriptorAllocator</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">GpuDescriptorAllocator</span>(<br>        ID3D12Device* device,<br>        D3D12_DESCRIPTOR_HEAP_TYPE type,<br>        UINT size) <span class="hljs-keyword">noexcept</span>;<br><br>    <span class="hljs-function">std::optional&lt;DescriptorHeapView&gt; <span class="hljs-title">Allocate</span><span class="hljs-params">(UINT count)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Destroy</span><span class="hljs-params">(DescriptorHeapView view)</span> <span class="hljs-keyword">noexcept</span></span>;<br><br><span class="hljs-keyword">private</span>:<br>    ID3D12Device* _device;<br>    radray::unique_ptr&lt;DescriptorHeap&gt; _heap;<br>    FreeListAllocator _allocator;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>shader可见分配器就没啥好说的了，非常标准</p>
+<p>这样实现完了以后会发现，欸，这两个Allocator甚至也完全符合分配器的概念</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-built_in">static_assert</span>(is_allocator&lt;CpuDescriptorAllocator, DescriptorHeapView&gt;, <span class="hljs-string">&quot;CpuDescriptorAllocator is not an allocator&quot;</span>);<br><span class="hljs-built_in">static_assert</span>(is_allocator&lt;GpuDescriptorAllocator, DescriptorHeapView&gt;, <span class="hljs-string">&quot;GpuDescriptorAllocator is not an allocator&quot;</span>);<br></code></pre></td></tr></table></figure>
+<p>这两条断言是可以通过的！精彩.jpg</p>
+<h1>尾声</h1>
+<p>至此，我们将分配描述符堆的脏活累活全都封起来，并建立了一套抽象，以后如果想替换实现也非常容易。</p>
+<p>不得不说，业余时间研究一些奇奇怪怪的东西，越深入越会发觉基础的重要性。</p>
+<p>翻阅CSAPP后才发现它真是大宝库，也后悔为什么以前没有深入学习它以及相关书籍…如果早先时候认真打基础，现在的处境会不会好一些。</p>
+<p>但是世上容不得假设，路只能一步步踏踏实实的走</p>
+<p>以上所有代码都开源在github</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ksgfk/RadRay/blob/main/include/radray/allocator.h">allocator.h</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ksgfk/RadRay/blob/main/src/core/allocator.cpp">allocator.cpp</a></p>
+<p>参考书籍文章就不一一列出来了，时间跨度太大没有记录过</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%AC%94%E8%AE%B0/" class="category-chain-item">笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/C/" class="print-no-link">#C++</a>
+      
+        <a href="/tags/D3D12/" class="print-no-link">#D3D12</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[D3D12]简易DescriptorHeap分配策略</div>
+      <div>https://ksgfk.github.io/2025/03/25/D3D12-简易DescriptorHeap分配策略/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ksgfk</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/02/26/CPP-%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/" title="[C++]观察者模式">
+                        <span class="hidden-mobile">[C++]观察者模式</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
